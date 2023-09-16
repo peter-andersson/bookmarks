@@ -1,0 +1,29 @@
+name: bokmarken-development
+
+services:
+  db:
+    image: postgres:15
+    container_name: bokmarken-db
+    restart: always
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    volumes:
+      - bokmarken_db:/var/lib/postgresql/data
+  admin:
+    image: dpage/pgadmin4:7
+    container_name: bokmarken-admin
+    restart: always
+    ports:
+      - "8888:80"
+    environment:
+      PGADMIN_DEFAULT_EMAIL:  admin@example.com
+      PGADMIN_DEFAULT_PASSWORD: postgres
+    volumes:
+      - bokmarken_admin:/var/lib/pgadmin
+
+volumes:
+  bokmarken_db:
+  bokmarken_admin:
