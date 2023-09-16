@@ -4,7 +4,7 @@ services:
   db:
     image: postgres:15
     container_name: bokmarken-db
-    restart: always
+    restart: "no"
     ports:
       - "5432:5432"
     environment:
@@ -13,9 +13,9 @@ services:
     volumes:
       - bokmarken_db:/var/lib/postgresql/data
   admin:
-    image: dpage/pgadmin4:7
-    container_name: bokmarken-admin
-    restart: always
+    image: dpage/pgadmin4:7    
+    container_name: bokmarken-admin    
+    restart: "no"
     ports:
       - "8888:80"
     environment:
