@@ -1,26 +1,15 @@
 var builder = WebApplication.CreateBuilder(args);
 
-// Add services to the container.
-
-builder.Services.AddControllersWithViews();
-
 var app = builder.Build();
 
-// Configure the HTTP request pipeline.
-if (!app.Environment.IsDevelopment())
-{
-    // The default HSTS value is 30 days. You may want to change this for production scenarios, see https://aka.ms/aspnetcore-hsts.
-    app.UseHsts();
-}
-
-app.UseHttpsRedirection();
 app.UseStaticFiles();
-app.UseRouting();
 
-
-app.MapControllerRoute(
-    name: "default",
-    pattern: "{controller}/{action=Index}/{id?}");
+app.MapGet("/api/bookmark", () => "Get all bookmarks");
+app.MapGet("/api/bookmark/{id}", (int id) => "Get one bookmark");
+app.MapGet("/api/bookmark/info/{url}", (string url) => "Load info from page (title, description)");
+app.MapPost("/api/bookmark", () => "Add bookmark");
+app.MapPut("/api/bookmark", () => "Update bookmark");
+app.MapDelete("/api/bookmark/{id}", (int id) => "Delete bookmark");
 
 app.MapFallbackToFile("index.html");
 
