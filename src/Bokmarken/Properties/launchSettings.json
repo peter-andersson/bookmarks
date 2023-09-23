@@ -3,10 +3,9 @@
     "Bokmarken": {
       "commandName": "Project",
       "launchBrowser": true,
-      "applicationUrl": "https://localhost:7153",
+      "applicationUrl": "http://localhost:7153",
       "environmentVariables": {
-        "ASPNETCORE_ENVIRONMENT": "Development",
-        "ASPNETCORE_HOSTINGSTARTUPASSEMBLIES": "Microsoft.AspNetCore.SpaProxy"
+        "ASPNETCORE_ENVIRONMENT": "Development"
       }
     }
   }
