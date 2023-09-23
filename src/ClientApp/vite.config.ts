@@ -10,7 +10,7 @@ export default defineConfig({
     vue(), mkcert()
   ],
   server: {
-    port: 3399,
+    port: 7152,
     https: true,
     strictPort : true,
     proxy: {
