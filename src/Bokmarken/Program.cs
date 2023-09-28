@@ -1,7 +1,17 @@
-using Bokmarken.Database;
+using Bokmarken;
+using Bokmarken.Data;
 
 var builder = WebApplication.CreateBuilder(args);
+builder.Services.Configure<Microsoft.AspNetCore.Http.Json.JsonOptions>(options =>
+{
+    options.SerializerOptions.AddContext<SerializerContext>();
+});
+
 builder.Services.AddTransient<DatabaseUpdate>();
+builder.Services.AddSingleton<Database>();
+builder.Services.AddSingleton<BookmarkManager>();
+builder.Services.AddSingleton<TagManager>();
+builder.Services.AddSingleton<WebSiteInfo>();
 
 var app = builder.Build();
 
@@ -13,13 +23,15 @@ using (var scope = app.Services.CreateScope())
 
 app.UseStaticFiles();
 
-//  TODO: Implement bookmarks API
-app.MapGet("/api/bookmark", () => "Get all bookmarks");
-app.MapGet("/api/bookmark/{id}", (int id) => "Get one bookmark");
-app.MapGet("/api/bookmark/info/{url}", (string url) => "Load info from page (title, description)");
-app.MapPost("/api/bookmark", () => "Add bookmark");
-app.MapPut("/api/bookmark", () => "Update bookmark");
-app.MapDelete("/api/bookmark/{id}", (int id) => "Delete bookmark");
+app.MapGet("/api/bookmark", async (BookmarkManager bookmarkManager) => await bookmarkManager.GetBookmarks());
+app.MapGet("/api/bookmark/{id:int}", async (int id, BookmarkManager bookmarkManager) => await bookmarkManager.GetBookmark(id));
+app.MapPost("/api/bookmark", async (HttpRequest request, BookmarkManager bookmarkManager) => await bookmarkManager.AddBookmark(request));
+app.MapPut("/api/bookmark", async (HttpRequest request, BookmarkManager bookmarkManager) => await bookmarkManager.UpdateBookmark(request));
+app.MapDelete("/api/bookmark/{id:int}", async (int id, BookmarkManager bookmarkManager) => await bookmarkManager.DeleteBookmark(id));
+app.MapGet("/api/tag", async (TagManager tagManager) => await tagManager.GetTags());
+
+app.MapPost("/api/bookmark/info",
+    async (HttpRequest request, WebSiteInfo webSiteInfo) => await webSiteInfo.LoadInfo(request));
 
 app.MapFallbackToFile("index.html");
 

@@ -12,7 +12,7 @@
       <_ContentIncludedByDefault Remove="Pages\_ViewImports.cshtml" />
     </ItemGroup>
     <ItemGroup>
-      <PackageReference Include="Dapper" Version="2.0.151" />
+      <PackageReference Include="HtmlAgilityPack" Version="1.11.53" />
       <PackageReference Include="Npgsql" Version="7.0.6" />
     </ItemGroup>
 </Project>

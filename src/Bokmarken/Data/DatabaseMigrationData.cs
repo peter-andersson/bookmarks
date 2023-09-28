@@ -1,4 +1,4 @@
-namespace Bokmarken.Database;
+namespace Bokmarken.Data;
 
 public class DatabaseMigrationData
 {

@@ -1,9 +1,8 @@
-using System.Data;
-using Bokmarken.Database.Migrations;
-using Dapper;
+using Bokmarken.Data.Migrations;
 using Npgsql;
+using NpgsqlTypes;
 
-namespace Bokmarken.Database;
+namespace Bokmarken.Data;
 
 public class DatabaseUpdate
 {
@@ -11,7 +10,7 @@ public class DatabaseUpdate
     private readonly ILogger<DatabaseUpdate> _logger;
     
     private int _maxVersion;
-    private Dictionary<int, DatabaseMigrationData> _migrations = new();
+    private readonly Dictionary<int, DatabaseMigrationData> _migrations = new();
     
     // TODO: Read connection string from configuration
     public DatabaseUpdate(ILogger<DatabaseUpdate> logger, IConfiguration configuration)
@@ -38,8 +37,9 @@ public class DatabaseUpdate
         var currentVersion = 0;
         try
         {
-            currentVersion =
-                await connection.QuerySingleAsync<int>("SELECT COALESCE(MAX(version), 0) FROM version_info");
+            await using var command = connection.CreateCommand();
+            command.CommandText = "SELECT COALESCE(MAX(version), 0) FROM version_info";
+            currentVersion =  Convert.ToInt32(await command.ExecuteScalarAsync());
         }
         catch (PostgresException e)
         {
@@ -68,12 +68,15 @@ public class DatabaseUpdate
         }
     }
 
-    private static async Task AddToVersionTable(IDbConnection connection, int version, string description)
+    private static async Task AddToVersionTable(NpgsqlConnection connection, int version, string description)
     {
-        const string sql = "INSERT INTO version_info (version, applied, description) VALUES (@Version, @AppliedAt, @Description)";
+        await using var command = connection.CreateCommand();
+        command.CommandText = "INTO version_info (version, applied, description) VALUES (@Version, @AppliedAt, @Description)";
+        command.Parameters.Add("@Version", NpgsqlDbType.Integer).Value = version;
+        command.Parameters.Add("@AppliedAt", NpgsqlDbType.Timestamp).Value = DateTime.UtcNow;
+        command.Parameters.Add("@Description", NpgsqlDbType.Varchar).Value = description;
 
-        var data = new { Version = version, AppliedAt = DateTime.UtcNow, Description = description };
-        await connection.ExecuteAsync(sql, data);
+        await command.ExecuteNonQueryAsync();
     }
 
     private void SetupMigrations()
