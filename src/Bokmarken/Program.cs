@@ -10,7 +10,6 @@ builder.Services.Configure<Microsoft.AspNetCore.Http.Json.JsonOptions>(options =
 builder.Services.AddTransient<DatabaseUpdate>();
 builder.Services.AddSingleton<Database>();
 builder.Services.AddSingleton<BookmarkManager>();
-builder.Services.AddSingleton<TagManager>();
 builder.Services.AddSingleton<WebSiteInfo>();
 
 var app = builder.Build();
@@ -28,7 +27,6 @@ app.MapGet("/api/bookmark/{id:int}", async (int id, BookmarkManager bookmarkMana
 app.MapPost("/api/bookmark", async (HttpRequest request, BookmarkManager bookmarkManager) => await bookmarkManager.AddBookmark(request));
 app.MapPut("/api/bookmark", async (HttpRequest request, BookmarkManager bookmarkManager) => await bookmarkManager.UpdateBookmark(request));
 app.MapDelete("/api/bookmark/{id:int}", async (int id, BookmarkManager bookmarkManager) => await bookmarkManager.DeleteBookmark(id));
-app.MapGet("/api/tag", async (TagManager tagManager) => await tagManager.GetTags());
 
 app.MapPost("/api/bookmark/info",
     async (HttpRequest request, WebSiteInfo webSiteInfo) => await webSiteInfo.LoadInfo(request));
