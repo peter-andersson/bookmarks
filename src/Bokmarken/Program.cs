@@ -1,36 +1,51 @@
 using Bokmarken;
 using Bokmarken.Data;
+using NLog;
+using NLog.Web;
 
-var builder = WebApplication.CreateBuilder(args);
-builder.Services.Configure<Microsoft.AspNetCore.Http.Json.JsonOptions>(options =>
+var logger = NLog.LogManager.Setup().LoadConfigurationFromAppSettings().GetCurrentClassLogger();
+logger.Debug("init main");
+
+try
 {
-    options.SerializerOptions.AddContext<SerializerContext>();
-});
+    var builder = WebApplication.CreateBuilder(args);
+    
+    builder.Logging.ClearProviders();
+    builder.Host.UseNLog();    
+    
+    builder.Services.Configure<Microsoft.AspNetCore.Http.Json.JsonOptions>(options =>
+    {
+        options.SerializerOptions.AddContext<SerializerContext>();
+    });
 
-builder.Services.AddTransient<DatabaseUpdate>();
-builder.Services.AddSingleton<Database>();
-builder.Services.AddSingleton<BookmarkManager>();
-builder.Services.AddSingleton<WebSiteInfo>();
+    builder.Services.AddTransient<DatabaseUpdate>();
+    builder.Services.AddSingleton<Database>();
+    builder.Services.AddSingleton<WebSiteInfo>();
 
-var app = builder.Build();
+    var app = builder.Build();
 
-using (var scope = app.Services.CreateScope())
-{
-    var dbUpdate = scope.ServiceProvider.GetRequiredService<DatabaseUpdate>();
-    await dbUpdate.EnsureDatabaseVersion();
+    using (var scope = app.Services.CreateScope())
+    {
+        var dbUpdate = scope.ServiceProvider.GetRequiredService<DatabaseUpdate>();
+        await dbUpdate.EnsureDatabaseVersion();
+    }
+
+    app.UseStaticFiles();
+
+    BookmarkApi.MapEndpoints(app);
+
+    app.MapFallbackToFile("index.html");
+
+    app.Run();
 }
-
-app.UseStaticFiles();
-
-app.MapGet("/api/bookmark", async (BookmarkManager bookmarkManager) => await bookmarkManager.GetBookmarks());
-app.MapGet("/api/bookmark/{id:int}", async (int id, BookmarkManager bookmarkManager) => await bookmarkManager.GetBookmark(id));
-app.MapPost("/api/bookmark", async (HttpRequest request, BookmarkManager bookmarkManager) => await bookmarkManager.AddBookmark(request));
-app.MapPut("/api/bookmark", async (HttpRequest request, BookmarkManager bookmarkManager) => await bookmarkManager.UpdateBookmark(request));
-app.MapDelete("/api/bookmark/{id:int}", async (int id, BookmarkManager bookmarkManager) => await bookmarkManager.DeleteBookmark(id));
-
-app.MapPost("/api/bookmark/info",
-    async (HttpRequest request, WebSiteInfo webSiteInfo) => await webSiteInfo.LoadInfo(request));
-
-app.MapFallbackToFile("index.html");
-
-app.Run();
+catch (Exception exception)
+{
+    // NLog: catch setup errors
+    logger.Fatal(exception, "Stopped program because of exception");
+    throw;
+}
+finally
+{
+    // Ensure to flush and stop internal timers/threads before application-exit (Avoid segmentation fault on Linux)
+    LogManager.Shutdown();
+}
