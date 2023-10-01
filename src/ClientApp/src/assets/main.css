@@ -10,3 +10,11 @@
     color: #9b9494;
     text-decoration: underline;
 }
+
+.bookmark-tag {
+    font-size: smaller;
+}
+
+.bookmark-description {
+    font-size: smaller;
+}
