@@ -1,2 +1,2 @@
-# Bokmärken
+# Bookmarks
 A bookmark manager
