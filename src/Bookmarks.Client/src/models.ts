@@ -8,5 +8,10 @@ export interface BookmarkModel {
     url: string;
     title: string | null;
     description: string | null;
-    tags: Tag[]
+    tags: Tag[];
+}
+
+export interface Website {
+    "title": string;
+    "description": string;
 }

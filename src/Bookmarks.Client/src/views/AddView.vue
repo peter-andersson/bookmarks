@@ -13,7 +13,7 @@
     "url": "",
     "tags": [],
     "title": null,
-    "description": null
+    "description": null,
   };
 
   function cancel() {

@@ -15,7 +15,7 @@
   let edit : Ref<boolean> = ref(false);
   let saving : Ref<boolean> = ref(false);
   let error : string = "";
-  let bookmark : BookmarkMode | null;
+  let bookmark : BookmarkModel | null;
 
   const route = useRoute();
 
@@ -50,18 +50,16 @@
     router.push('/');
   }
 
-  async function save() {
+  async function save(changedBookmark : BookmarkModel) {
     saving.value = true;
 
-    console.log(bookmark);
-
     try {
-      const result = await api.updateBookmark(bookmark);
+      const result = await api.updateBookmark(changedBookmark);
       if (result) {
         await router.push('/');
       } else {
         saving.value = false;
-        error = "API responded with " + response.statusText;
+        error = "Failed to update bookmark";
       }
     } catch (err : any) {
       error = err.toString();

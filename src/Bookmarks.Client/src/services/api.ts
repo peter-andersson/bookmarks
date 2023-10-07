@@ -1,10 +1,8 @@
-import type {BookmarkModel} from "@/models";
+import type {BookmarkModel, Website, Tag} from "@/models";
 import type {RouteParamValue} from "vue-router";
-import router from "@/router";
 
 class BookmarkApi {
     async addBookmark(bookmark : BookmarkModel) : Promise<boolean> {
-        console.log(bookmark);
         try {
             await new Promise(r => setTimeout(r, 5000));
 
@@ -24,6 +22,23 @@ class BookmarkApi {
         } catch (err : any) {
             this.handleErrors(err);
             throw "Failed to add bookmark";
+        }
+    }
+
+    async deleteBookmark(id: string | RouteParamValue[]) : Promise<boolean> {
+        try {
+            const response = await fetch('/api/bookmark/' + id, {
+                method: "DELETE"
+            });
+            if (response.ok) {
+                return true;
+            } else {
+                this.handleErrorResponse("Delete bookmark failed.", response);
+                return false;
+            }
+        } catch (err : any) {
+            this.handleErrors(err);
+            throw "Failed to delete bookmark";
         }
     }
 
@@ -53,20 +68,37 @@ class BookmarkApi {
         }
     }
 
-    async deleteBookmark(id: string | RouteParamValue[]) : Promise<boolean> {
+    async getTags() : Promise<Tag[]> {
         try {
-            const response = await fetch('/api/bookmark/' + id, {
-                method: "DELETE"
+            const response = await fetch('/api/bookmark/tags');
+
+            return await response.json();
+        } catch (err : any) {
+            this.handleErrors(err);
+            return [];
+        }
+    }
+
+    async loadInfo(url : string): Promise<Website | null> {
+        try {
+            await new Promise(r => setTimeout(r, 5000));
+
+            const response = await fetch('/api/bookmark/info', {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                body: url
             });
             if (response.ok) {
-                return true;
+                return await response.json();
             } else {
-                this.handleErrorResponse("Delete bookmark failed.", response);
-                return false;
+                this.handleErrorResponse("Get info failed.", response);
+                return null;
             }
         } catch (err : any) {
             this.handleErrors(err);
-            throw "Failed to delete bookmark";
+            throw "Failed to get info";
         }
     }
 
@@ -91,7 +123,7 @@ class BookmarkApi {
         }
     }
 
-    handleErrors(err) {
+    handleErrors(err: any) {
         console.error(err);
     }
 
