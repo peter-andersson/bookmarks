@@ -1,27 +1,28 @@
 <script setup lang="ts">
+  import { useRouter, useRoute } from 'vue-router'
+
   import { watch } from "vue";
-  import { useRoute } from "vue-router";
   import { ref } from 'vue'
   import type { Ref } from 'vue'
-  import type { Bookmark } from "@/models";
+  import type { BookmarkModel } from "@/models";
+  import { api } from "@/services/api";
 
-  const route = useRoute();
+  const router = useRouter()
+  const route = useRoute()
 
   let loading : Ref<boolean> = ref(false);
   let error : Ref<string | null> = ref(null);
-  let bookmarks : Ref<Bookmark[] | null> = ref(null);
+  let bookmarks : Ref<BookmarkModel[] | null> = ref(null);
   let tags : Ref<string[] | null> = ref(null);
 
   // TODO: Search with query params
-  // TODO: Cache data
-  // console.log(route.query);
 
   watch(
       () => route.fullPath,
       async () => {
         await fetchData();
       },
-      { immediate: true }
+      {immediate: true}
   );
 
   async function fetchData() {
@@ -31,8 +32,7 @@
     tags.value = null;
 
     try {
-      const response = await fetch('/api/bookmark');
-      bookmarks.value = await response.json();
+      bookmarks.value = await api.getBookmarks()
       loading.value = false;
       buildTagArray();
     } catch (err : any) {
@@ -76,9 +76,9 @@
           <div class="bookmark-description">
             <span class="text-truncate">{{ item.description }}</span>
             <span class="ms-1 me-1">|</span>
-            <a v-bind:href="'edit/' + item.id" class="link-success link-underline link-underline-opacity-0 link-underline-opacity-100-hover">Edit</a>
+            <RouterLink :to="{name: 'edit', params: {id: item.id}}" class="link-success link-underline link-underline-opacity-0 link-underline-opacity-100-hover">Edit</RouterLink>
             <span class="ms-1 me-1">|</span>
-            <a v-bind:href="'delete/' + item.id" class="link-danger link-underline link-underline-opacity-0 link-underline-opacity-100-hover">Delete</a>
+            <RouterLink :to="{name: 'delete', params: {id: item.id}}" class="link-danger link-underline link-underline-opacity-0 link-underline-opacity-100-hover">Delete</RouterLink>
           </div>
         </div>
       </div>

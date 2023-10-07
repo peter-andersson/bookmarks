@@ -3,7 +3,7 @@ export interface Tag {
     name: string;
 }
 
-export interface Bookmark {
+export interface BookmarkModel {
     id: number;
     url: string;
     title: string | null;

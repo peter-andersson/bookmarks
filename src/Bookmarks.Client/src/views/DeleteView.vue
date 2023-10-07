@@ -1,15 +1,18 @@
 <script setup lang="ts">
+  import ErrorMessage from "@/components/ErrorMesage.vue";
+
   import router from '@/router';
   import { useRoute } from "vue-router";
   import { watch } from "vue";
   import { ref } from 'vue'
   import type { Ref } from 'vue'
-  import type { Bookmark } from "@/models";
+  import { api } from "@/services/api";
+  import type { BookmarkModel } from "@/models";
 
   let loading : Ref<boolean> = ref(false);
   let deleting : Ref<boolean> = ref(false);
-  let error : Ref<string | null> = ref(null);
-  let bookmark : Ref<Bookmark | null> = ref(null);
+  let error : string = "";
+  let bookmark : Ref<BookmarkModel | null> = ref(null);
 
   const route = useRoute();
 
@@ -18,7 +21,7 @@
       async () => {
         await fetchData();
       },
-      { immediate: true }
+      {immediate: true}
   );
 
   async function fetchData() {
@@ -26,16 +29,14 @@
     loading.value = true;
 
     try {
-      const response = await fetch('/api/bookmark/' + route.params.id);
+      bookmark.value = await api.getBookmark(route.params.id);
       loading.value = false;
-      if (response.ok) {
-        bookmark.value = await response.json();
-      } else {
-        error.value = "API responded with " + response.statusText;
+      if (!bookmark.value) {
+        error = "Failed to get bookmark";
       }
     } catch (err : any) {
       loading.value = false;
-      error.value = err.toString();
+      error = err.toString();
     }
   }
 
@@ -47,17 +48,17 @@
     deleting.value = true;
 
     try {
-      const response = await fetch('/api/bookmark/' + route.params.id, {
-        method: "DELETE"
-      });
-      if (response.ok) {
+      const result = await api.deleteBookmark(route.params.id);
+
+      if (result) {
         await router.push('/');
       } else {
+        error = "Failed to delete bookmark";
         deleting.value = false;
-        error.value = "API responded with " + response.statusText;
       }
     } catch (err : any) {
-      error.value = err.toString();
+      error = err.toString();
+      deleting.value = false;
     }
   }
 </script>
@@ -66,13 +67,9 @@
   <h1>Delete bookmark</h1>
 
   <div v-if="loading">Loading...</div>
-  <div v-if="error">
-    <div class="alert alert-danger" role="alert">
-      Bookmark not found or couldn't fetch bookmark info.
 
-      <p class="mt-1">Errormessage: {{ error }}</p>
-    </div>
-  </div>
+  <ErrorMessage :error=error />
+
   <div v-if="bookmark">
     <p>Are you sure you want to delete this bookmark?</p>
     <fieldset disabled>
