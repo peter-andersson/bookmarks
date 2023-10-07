@@ -2,7 +2,7 @@ using Npgsql;
 
 namespace Bookmarks.Data.Migrations;
 
-public class Migration001 : IDatabaseMigration
+internal sealed class Migration001 : IDatabaseMigration
 {
     public async Task ApplyMigration(NpgsqlConnection connection)
     {

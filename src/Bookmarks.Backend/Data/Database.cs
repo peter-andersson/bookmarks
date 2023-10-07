@@ -1,18 +1,19 @@
 using System.Diagnostics;
+using Microsoft.Extensions.Options;
 using Npgsql;
 using NpgsqlTypes;
 
 namespace Bookmarks.Data;
 
-public sealed class Database
+internal sealed class Database
 {
     private readonly ILogger<Database> _logger;
     private readonly string _connectionString;
     
-    public Database(ILogger<Database> logger, IConfiguration configuration)
+    public Database(ILogger<Database> logger, IOptions<BookmarkOptions> options)
     {
         _logger = logger;
-        _connectionString = configuration.GetConnectionString("Postgres") ?? string.Empty;
+        _connectionString = options.Value.ConnectionString;
     }
 
     public async Task<Bookmark?> CreateBookmark(Bookmark bookmark, List<Tag> tags)

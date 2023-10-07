@@ -3,8 +3,8 @@ using Bookmarks.Data;
 using NLog;
 using NLog.Web;
 
-var logger = NLog.LogManager.Setup().LoadConfigurationFromAppSettings().GetCurrentClassLogger();
-logger.Debug("init main");
+var logger = LogManager.Setup().LoadConfigurationFromAppSettings().GetCurrentClassLogger();
+logger.Debug("Application startup");
 
 try
 {
@@ -17,6 +17,11 @@ try
     {
         options.SerializerOptions.AddContext<SerializerContext>();
     });
+
+    builder.Services.AddOptions<BookmarkOptions>()
+        .Bind(builder.Configuration.GetSection(BookmarkOptions.SectionName))
+        .ValidateDataAnnotations()
+        .ValidateOnStart();
 
     builder.Services.AddTransient<DatabaseUpdate>();
     builder.Services.AddSingleton<Database>();
@@ -32,6 +37,7 @@ try
 
     app.UseStaticFiles();
 
+    // Setup API
     BookmarkApi.MapEndpoints(app);
 
     app.MapFallbackToFile("index.html");
@@ -40,7 +46,6 @@ try
 }
 catch (Exception exception)
 {
-    // NLog: catch setup errors
     logger.Fatal(exception, "Stopped program because of exception");
     throw;
 }

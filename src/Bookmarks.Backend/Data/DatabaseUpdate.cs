@@ -1,10 +1,11 @@
 using Bookmarks.Data.Migrations;
+using Microsoft.Extensions.Options;
 using Npgsql;
 using NpgsqlTypes;
 
 namespace Bookmarks.Data;
 
-public class DatabaseUpdate
+internal sealed class DatabaseUpdate
 {
     private readonly string _connectionString;
     private readonly ILogger<DatabaseUpdate> _logger;
@@ -12,11 +13,10 @@ public class DatabaseUpdate
     private int _maxVersion;
     private readonly Dictionary<int, DatabaseMigrationData> _migrations = new();
     
-    // TODO: Read connection string from configuration
-    public DatabaseUpdate(ILogger<DatabaseUpdate> logger, IConfiguration configuration)
+    public DatabaseUpdate(ILogger<DatabaseUpdate> logger, IOptions<BookmarkOptions> options)
     {
         _logger = logger;
-        _connectionString = configuration.GetConnectionString("Postgres") ?? string.Empty;
+        _connectionString = options.Value.ConnectionString;
 
         SetupMigrations();
     }
@@ -71,7 +71,7 @@ public class DatabaseUpdate
     private static async Task AddToVersionTable(NpgsqlConnection connection, int version, string description)
     {
         await using var command = connection.CreateCommand();
-        command.CommandText = "INTO version_info (version, applied, description) VALUES (@Version, @AppliedAt, @Description)";
+        command.CommandText = "INSERT INTO version_info (version, applied, description) VALUES (@Version, @AppliedAt, @Description)";
         command.Parameters.Add("@Version", NpgsqlDbType.Integer).Value = version;
         command.Parameters.Add("@AppliedAt", NpgsqlDbType.Timestamp).Value = DateTime.UtcNow;
         command.Parameters.Add("@Description", NpgsqlDbType.Varchar).Value = description;
@@ -81,13 +81,8 @@ public class DatabaseUpdate
 
     private void SetupMigrations()
     {
-        _migrations.Add(1, new DatabaseMigrationData()
-        {
-            Version = 1,
-            Description = "Initial create of database",
-            Migration = new Migration001()
-        });
-        
+        _migrations.Add(1, new DatabaseMigrationData(1, "Initial create of database", new Migration001()));
+                
         _maxVersion = _migrations.Keys.Max();
     }
 }

@@ -2,7 +2,7 @@ using HtmlAgilityPack;
 
 namespace Bookmarks;
 
-public class WebSiteInfo
+internal sealed class WebSiteInfo
 {
     public async Task<IResult> LoadInfo(HttpRequest request)
     {
