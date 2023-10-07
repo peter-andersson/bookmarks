@@ -26,7 +26,7 @@ internal sealed class WebSiteInfo
         var titleNode = doc.DocumentNode.SelectSingleNode("//head/title");
         if (titleNode is not null)
         {
-            title = titleNode.InnerText;
+            title = System.Net.WebUtility.HtmlDecode(titleNode.InnerText);
         }
 
         var description = string.Empty;
