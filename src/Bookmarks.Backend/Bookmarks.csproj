@@ -6,11 +6,9 @@
         <TypeScriptToolsVersion>Latest</TypeScriptToolsVersion>
         <IsPackable>false</IsPackable>
         <ImplicitUsings>enable</ImplicitUsings>
+        <RootNamespace>Bookmarks</RootNamespace>
+        <AssemblyName>Bookmarks</AssemblyName>
     </PropertyGroup>
-    <ItemGroup>
-      <_ContentIncludedByDefault Remove="Pages\Error.cshtml" />
-      <_ContentIncludedByDefault Remove="Pages\_ViewImports.cshtml" />
-    </ItemGroup>
     <ItemGroup>
       <PackageReference Include="HtmlAgilityPack" Version="1.11.53" />
       <PackageReference Include="NLog" Version="5.2.4" />
