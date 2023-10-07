@@ -1,6 +1,6 @@
 using System.Text.Json.Serialization;
 
-namespace Bokmarken;
+namespace Bookmarks;
 
 [JsonSerializable(typeof(Bookmark))]
 [JsonSerializable(typeof(List<Bookmark>))]

@@ -1,5 +1,5 @@
-using Bokmarken;
-using Bokmarken.Data;
+using Bookmarks;
+using Bookmarks.Data;
 using NLog;
 using NLog.Web;
 

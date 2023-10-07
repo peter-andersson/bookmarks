@@ -1,6 +1,6 @@
 using Npgsql;
 
-namespace Bokmarken.Data;
+namespace Bookmarks.Data;
 
 public interface IDatabaseMigration
 {

@@ -1,4 +1,4 @@
-namespace Bokmarken;
+namespace Bookmarks;
 
 public record Tag(int Id, string Name);
 

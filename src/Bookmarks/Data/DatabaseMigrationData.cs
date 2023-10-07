@@ -1,4 +1,4 @@
-namespace Bokmarken.Data;
+namespace Bookmarks.Data;
 
 public class DatabaseMigrationData
 {

@@ -1,8 +1,8 @@
-using Bokmarken.Data;
+using Bookmarks.Data;
 using Microsoft.AspNetCore.Mvc;
 using NLog;
 
-namespace Bokmarken;
+namespace Bookmarks;
 
 internal static class BookmarkApi
 {

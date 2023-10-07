@@ -1,6 +1,6 @@
 using HtmlAgilityPack;
 
-namespace Bokmarken;
+namespace Bookmarks;
 
 public class WebSiteInfo
 {

@@ -1,8 +1,8 @@
-using Bokmarken.Data.Migrations;
+using Bookmarks.Data.Migrations;
 using Npgsql;
 using NpgsqlTypes;
 
-namespace Bokmarken.Data;
+namespace Bookmarks.Data;
 
 public class DatabaseUpdate
 {

@@ -1,6 +1,6 @@
 using Npgsql;
 
-namespace Bokmarken.Data.Migrations;
+namespace Bookmarks.Data.Migrations;
 
 public class Migration001 : IDatabaseMigration
 {

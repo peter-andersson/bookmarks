@@ -2,7 +2,7 @@ using System.Diagnostics;
 using Npgsql;
 using NpgsqlTypes;
 
-namespace Bokmarken.Data;
+namespace Bookmarks.Data;
 
 public sealed class Database
 {

@@ -1,2 +1,9 @@
-src/Bokmarken.sln.DotSettings.user
-src/.idea/.idea.Bokmarken/.idea/dataSources.local.xml
+# User-specific stuff
+.idea
+*.user
+
+# Development files
+node_modules/
+appsettings.Development.json
+bin/
+obj/
