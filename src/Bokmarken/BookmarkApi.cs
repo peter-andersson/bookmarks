@@ -17,6 +17,7 @@ internal static class BookmarkApi
         group.MapPut("/", UpdateBookmark);
         group.MapDelete("/{id:int}", DeleteBookmark);
         group.MapPost("/info", async (HttpRequest request, WebSiteInfo webSiteInfo) => await webSiteInfo.LoadInfo(request));
+        group.MapGet("/tags", GetTags);
     }
     
     private static async Task<IResult> AddBookmark([FromServices]Database database, HttpRequest request)
@@ -67,6 +68,15 @@ internal static class BookmarkApi
         var bookmark = await database.GetBookmark(id);
         
         return bookmark is null ? Results.NotFound() : Results.Json(bookmark);
+    }
+
+    private static async Task<IResult> GetTags([FromServices] Database database)
+    {
+        Logger.Debug("Get tags");
+
+        var tags = await database.GetTags();     
+
+        return Results.Json(tags);        
     }
     
     private static async Task<IResult> UpdateBookmark([FromServices]Database database, HttpRequest request)
