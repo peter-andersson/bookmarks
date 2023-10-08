@@ -1,0 +1,16 @@
+[Unit]
+Description=Bookmarks manager
+After=syslog.target network.target
+
+[Service]
+User=bookmark
+Group=bookmark
+UMask=0002
+Type=simple
+ExecStart=/opt/bookmarks/Bookmarks
+TimeoutStopSec=20
+KillMode=process
+Restart=on-failure
+
+[Install]
+WantedBy=multi-user.target
