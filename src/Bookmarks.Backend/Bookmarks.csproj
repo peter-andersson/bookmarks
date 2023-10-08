@@ -1,16 +1,23 @@
 <Project Sdk="Microsoft.NET.Sdk.Web">
     <PropertyGroup>
         <TargetFramework>net7.0</TargetFramework>
+        <RuntimeIdentifiers>win-x64;linux-x64</RuntimeIdentifiers>
         <Nullable>enable</Nullable>
-        <TypeScriptCompileBlocked>true</TypeScriptCompileBlocked>
-        <TypeScriptToolsVersion>Latest</TypeScriptToolsVersion>
-        <IsPackable>false</IsPackable>
         <ImplicitUsings>enable</ImplicitUsings>
         <RootNamespace>Bookmarks</RootNamespace>
         <AssemblyName>Bookmarks</AssemblyName>
+        <PublishSingleFile>true</PublishSingleFile>
+        <TrimMode>partial</TrimMode>
+        <RestorePackagesWithLockFile>true</RestorePackagesWithLockFile>        
+        <RestoreLockedMode>true</RestoreLockedMode>
     </PropertyGroup>
+
     <ItemGroup>
-      <PackageReference Include="HtmlAgilityPack" Version="1.11.53" />
+      <Content Update="appsettings.Development.json" CopyToPublishDirectory="Never" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <PackageReference Include="HtmlAgilityPack" Version="1.11.54" />
       <PackageReference Include="NLog" Version="5.2.4" />
       <PackageReference Include="NLog.Web.AspNetCore" Version="5.3.4" />
       <PackageReference Include="Npgsql" Version="7.0.6" />

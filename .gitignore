@@ -1,9 +1,14 @@
 # User-specific stuff
 .idea
 *.user
+.vscode
 
 # Development files
 node_modules/
 appsettings.Development.json
 bin/
 obj/
+
+# Build outputs
+wwwroot/
+dist/
