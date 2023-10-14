@@ -1,4 +1,4 @@
-import type {BookmarkModel, Website, Tag} from "@/models";
+import type {BookmarkModel, Website} from "@/models";
 import type {RouteParamValue} from "vue-router";
 
 class BookmarkApi {
@@ -9,7 +9,7 @@ class BookmarkApi {
             const response = await fetch('/api/bookmark/', {
                 method: "POST",
                 headers: {
-                    "Content-Type": "application/json",
+                    "Content-Type": "application/json"
                 },
                 body: JSON.stringify(bookmark)
             });
@@ -68,7 +68,7 @@ class BookmarkApi {
         }
     }
 
-    async getTags() : Promise<Tag[]> {
+    async getTags() : Promise<string[]> {
         try {
             const response = await fetch('/api/bookmark/tags');
 

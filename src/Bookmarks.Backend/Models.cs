@@ -1,7 +1,5 @@
 namespace Bookmarks;
 
-public record Tag(int Id, string Name);
+public record BookmarkDto(int Id, string Url, string? Title, string? Description, List<string> Tags);
 
-public record Bookmark(int Id, string Url, string? Title, string? Description, List<Tag> Tags);
-
-public record Website(string? Title, string? Description);
+public record WebsiteDto(string? Title, string? Description);

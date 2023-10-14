@@ -1,5 +1,6 @@
 using Bookmarks;
 using Bookmarks.Data;
+using Microsoft.EntityFrameworkCore;
 using NLog;
 using NLog.Web;
 
@@ -11,28 +12,22 @@ try
     var builder = WebApplication.CreateBuilder(args);
     
     builder.Logging.ClearProviders();
-    builder.Host.UseNLog();    
+    builder.Host.UseNLog();
+    
+    builder.Services.AddDbContext<BookmarkContext>(options =>
+        options.UseNpgsql(builder.Configuration.GetConnectionString("Bookmark")));    
     
     builder.Services.Configure<Microsoft.AspNetCore.Http.Json.JsonOptions>(options =>
     {
         options.SerializerOptions.AddContext<SerializerContext>();
     });
-
-    builder.Services.AddOptions<BookmarkOptions>()
-        .Bind(builder.Configuration.GetSection(BookmarkOptions.SectionName))
-        .ValidateDataAnnotations()
-        .ValidateOnStart();
-
-    builder.Services.AddTransient<DatabaseUpdate>();
-    builder.Services.AddSingleton<Database>();
-    builder.Services.AddSingleton<WebSiteInfo>();
-
+    
     var app = builder.Build();
 
     using (var scope = app.Services.CreateScope())
     {
-        var dbUpdate = scope.ServiceProvider.GetRequiredService<DatabaseUpdate>();
-        await dbUpdate.EnsureDatabaseVersion();
+        var db = scope.ServiceProvider.GetRequiredService<BookmarkContext>();
+        db.Database.Migrate();        
     }
 
     app.UseStaticFiles();

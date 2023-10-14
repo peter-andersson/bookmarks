@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { BookmarkModel, Website, Tag } from "@/models";
+import type { BookmarkModel, Website } from "@/models";
 import { api } from "@/services/api";
 import { ref } from 'vue'
 import type { Ref } from 'vue'
@@ -23,13 +23,12 @@ if (props.bookmark) {
 }
 
 let tags : Ref<string> = ref("");
-bookmark.value.tags.forEach((tag : Tag) => {
-  console.log(tag.name);
+bookmark.value.tags.forEach((tag) => {
   if (tags.value === "") {
-    tags.value = tag.name;
+    tags.value = tag;
   }
   else {
-    tags.value = tags.value + " " + tag.name;
+    tags.value = tags.value + " " + tag;
   }
 });
 
@@ -77,24 +76,9 @@ function ok() {
     "tags": []
   };
   const tagNames = tags.value.split(" ");
+  console.log(tagNames);
   tagNames.forEach((name) => {
-    let newTag = true;
-    tagList.every((tag:Tag) => {
-      if (tag.name === name) {
-        model.tags.push(tag);
-        newTag = false;
-        return false;
-      }
-
-      return true;
-    });
-
-    if (newTag) {
-      model.tags.push({
-        "id": 0,
-        "name": name
-      });
-    }
+    model.tags.push(name);
   });
 
   emit("ok", model);
@@ -104,13 +88,9 @@ function cancel() {
   emit("cancel");
 }
 
-let tagList: Tag[] = [];
 let tagNames: string[] = [];
 async function getTags() {
-  tagList = await api.getTags();
-  tagList.forEach((tag) => {
-    tagNames.push(tag.name);
-  })
+  tagNames = await api.getTags();
 }
 
 getTags();
