@@ -1,5 +1,8 @@
 using Bookmarks.Data;
+using Bookmarks.Data.Models;
+using HtmlAgilityPack;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 
 namespace Bookmarks;
 
@@ -13,128 +16,160 @@ internal sealed class BookmarkApi
         group.MapPost("/", AddBookmark);
         group.MapPut("/", UpdateBookmark);
         group.MapDelete("/{id:int}", DeleteBookmark);
-        group.MapPost("/info", async (HttpRequest request, WebSiteInfo webSiteInfo) => await webSiteInfo.LoadInfo(request));
+        group.MapPost("/info", LoadInfo);
         group.MapGet("/tags", GetTags);
     }
     
-    private static async Task<IResult> AddBookmark([FromServices]Database database, [FromServices]ILogger<BookmarkApi> logger, HttpRequest request)
+    private static async Task<IResult> AddBookmark(BookmarkContext dbContext, ILogger<BookmarkApi> logger, HttpRequest request, CancellationToken cancellationToken)
     {
-        var bookmark = await request.ReadFromJsonAsync<Bookmark>();
+        var bookmarkDto = await request.ReadFromJsonAsync<BookmarkDto>(cancellationToken);
         
-        if (bookmark is null)
-        {
-            logger.LogError("Can't add bookmark, missing object");
-            return Results.BadRequest("Missing bookmark object");
-        }        
-        
-        if (string.IsNullOrWhiteSpace(bookmark.Url))
+        if (string.IsNullOrWhiteSpace(bookmarkDto?.Url))
         {
             logger.LogError("Can't add bookmark, missing url");
             return Results.BadRequest("Bookmark is missing url");
         }
-        
-        var tags = await CreateTags(database, bookmark);
-        var createdBookmark = await database.CreateBookmark(bookmark, tags);
-        
-        return Results.Json(createdBookmark);
-    }    
+
+        var bookmark = await dbContext.Bookmarks.Where(b => b.Url == bookmarkDto.Url).FirstOrDefaultAsync(cancellationToken);
+        if (bookmark is not null)
+        {
+            logger.LogError("Can't add bookmark, already have bookmark with url {url}", bookmarkDto.Url);
+            return Results.Conflict();
+        }
+
+        bookmark = new Bookmark()
+        {
+            Url = bookmarkDto.Url,
+            Title = bookmarkDto.Title,
+            Description = bookmarkDto.Description
+        };
+
+        await HandleTags(dbContext, bookmark, bookmarkDto, cancellationToken);
+
+        dbContext.Bookmarks.Add(bookmark);
+        await dbContext.SaveChangesAsync(cancellationToken);
+       
+        return Results.Json(ModelConverter.ConvertToDto(bookmark));
+    }
     
-    private static async Task<IResult> DeleteBookmark([FromServices]Database database, [FromRoute]int id)
+    private static async Task<IResult> DeleteBookmark(BookmarkContext dbContext, CancellationToken cancellationToken, [FromRoute]int id)
     {
-        await database.DeleteBookmark(id);
+        await dbContext.Bookmarks.Where(b => b.BookmarkId == id).ExecuteDeleteAsync(cancellationToken);
 
         return Results.Ok();
     }
 
-    private static async Task<IResult> GetBookmarks([FromServices]Database database)
+    private static async Task<IResult> GetBookmarks(BookmarkContext dbContext, CancellationToken cancellationToken)
     {
-        var bookmarks = await database.GetBookmarks();     
+        var bookmarks = await dbContext.Bookmarks.Include(b => b.Tags).ToListAsync(cancellationToken);     
 
-        return Results.Json(bookmarks);      
+        return Results.Json(ModelConverter.ConvertToDto(bookmarks));      
     }
     
-    private static async Task<IResult> GetBookmark([FromServices]Database database, [FromRoute]int id)
+    private static async Task<IResult> GetBookmark(BookmarkContext dbContext, CancellationToken cancellationToken, [FromRoute]int id)
     {
-        var bookmark = await database.GetBookmark(id);
+        var bookmark = await dbContext.Bookmarks
+            .Where(b => b.BookmarkId == id)
+            .Include(b => b.Tags)
+            .FirstOrDefaultAsync(cancellationToken);
         
-        return bookmark is null ? Results.NotFound() : Results.Json(bookmark);
+        return bookmark is null ? Results.NotFound() : Results.Json(ModelConverter.ConvertToDto((bookmark)));
     }
 
-    private static async Task<IResult> GetTags([FromServices] Database database)
+    private static async Task<IResult> GetTags(BookmarkContext dbContext, CancellationToken cancellationToken)
     {
-        var tags = await database.GetTags();     
+        var tags = await dbContext.Tags.ToListAsync(cancellationToken);     
 
-        return Results.Json(tags);        
+        return Results.Json(ModelConverter.ConvertToDto(tags));        
     }
     
-    private static async Task<IResult> UpdateBookmark([FromServices]Database database, [FromServices]ILogger<BookmarkApi> logger, HttpRequest request)
+    private static async Task<IResult> UpdateBookmark(BookmarkContext dbContext, ILogger<BookmarkApi> logger, HttpRequest request, CancellationToken cancellationToken)
     {
-        var bookmark = await request.ReadFromJsonAsync<Bookmark>();
+        var bookmarkDto = await request.ReadFromJsonAsync<BookmarkDto>(cancellationToken);
         
-        if (bookmark is null)
-        {
-            logger.LogError("Can't update bookmark, missing object");
-            return Results.BadRequest("Missing bookmark object");
-        }        
-        
-        if (string.IsNullOrWhiteSpace(bookmark.Url))
+        if (string.IsNullOrWhiteSpace(bookmarkDto?.Url))
         {
             logger.LogError("Can't update bookmark, missing url");
             return Results.BadRequest("Bookmark is missing url");
         }
 
-        var existing = await database.GetBookmark(bookmark.Id);
+        var existing = await dbContext.Bookmarks.Where(b => b.BookmarkId == bookmarkDto.Id).Include(b => b.Tags).FirstOrDefaultAsync(cancellationToken);
         if (existing is null)
         {
-            logger.LogError("No bookmark with id {id}", bookmark.Id);
+            logger.LogError("No bookmark with id {id}", bookmarkDto.Id);
             return Results.NotFound();
         }
 
-        var tags = await CreateTags(database, bookmark);
-        await database.UpdateBookmark(bookmark, tags);
+        await HandleTags(dbContext, existing, bookmarkDto, cancellationToken);
         
-        return await GetBookmark(database, bookmark.Id);
+        await dbContext.SaveChangesAsync(cancellationToken);
+        
+        return await GetBookmark(dbContext, cancellationToken, existing.BookmarkId);
     }    
     
-    private static async Task<List<Tag>> CreateTags(Database database, Bookmark bookmark)
+    private static async Task HandleTags(BookmarkContext dbContext, Bookmark bookmark, BookmarkDto bookmarkDto,
+        CancellationToken cancellationToken)
     {
-        if (bookmark.Tags.Count == 0)
-        {
-            return new List<Tag>();
-        }
+        bookmark.Tags.Clear();
         
-        var tmp = await database.GetTags();
-        var tags = tmp.ToList();
-        var tagsToCreate = new List<Tag>();
-        var tagsToConnect = new List<Tag>();
-
-        foreach (var tag in bookmark.Tags)
+        var tags = await dbContext.Tags.ToListAsync(cancellationToken);
+        foreach (var tagName in bookmarkDto.Tags)
         {
-            var existingTag = tags.FirstOrDefault(t => t.Name == NormalizeTagName(tag.Name));
-            if (existingTag is not null)
+            var tag = tags.FirstOrDefault(t => t.Name == NormalizeTagName(tagName));
+            if (tag is null)
             {
-                tagsToConnect.Add(existingTag);
+                var newTag = new Tag()
+                {
+                    Name = NormalizeTagName(tagName)
+                };
+
+                dbContext.Tags.Add(newTag);
+                bookmark.Tags.Add(newTag);
             }
             else
             {
-                tagsToCreate.Add(tag);
+                bookmark.Tags.Add(tag);
             }
         }
-        
-        foreach (var tag in tagsToCreate)
+    }
+    
+    private static async Task<IResult> LoadInfo(HttpRequest request, CancellationToken cancellationToken)
+    {
+        using var sr = new StreamReader(request.Body);
+        var url = await sr.ReadToEndAsync(cancellationToken);
+    
+        if (string.IsNullOrWhiteSpace(url))
         {
-            var newTag = await database.CreateTag(NormalizeTagName(tag.Name));
-            if (newTag is not null)
-            {
-                tagsToConnect.Add(newTag);
-            }
+            return Results.BadRequest("Missing url");
         }
 
-        return tagsToConnect;
+        if (!Uri.TryCreate(url, UriKind.Absolute, out _))
+        {
+            return Results.BadRequest("Not a valid url");
+        }
+
+        var web = new HtmlWeb();
+        var doc = await web.LoadFromWebAsync(url, cancellationToken);
+
+        var title = string.Empty;
+        var titleNode = doc.DocumentNode.SelectSingleNode("//head/title");
+        if (titleNode is not null)
+        {
+            title = System.Net.WebUtility.HtmlDecode(titleNode.InnerText);
+        }
+
+        var description = string.Empty;
+        var descriptionNode = doc.DocumentNode.SelectSingleNode("//head/meta[@name='description']");
+        if (descriptionNode is not null)
+        {
+            description = System.Net.WebUtility.HtmlDecode(descriptionNode.GetAttributeValue("content", string.Empty));
+        }
+
+        return Results.Json(new WebsiteDto(title, description));
     }
 
     private static string NormalizeTagName(string tagName)
     {
-        return tagName.ToLowerInvariant().Replace(' ', '-');
+        return tagName.ToLowerInvariant();
     }     
 }

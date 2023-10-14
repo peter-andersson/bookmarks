@@ -44,8 +44,8 @@
     tags.value = [];
     bookmarks?.forEach((bookmark) => {
       bookmark.tags.forEach((tag) => {
-        if (!tags.value?.includes(tag.name)) {
-          tags.value?.push(tag.name);
+        if (!tags.value?.includes(tag)) {
+          tags.value?.push(tag);
         }
       });
     });
@@ -71,7 +71,7 @@
       filteredBookmarks.value = bookmarks?.filter((bookmark) => {
         let foundTag = false;
         bookmark.tags.every((tag) => {
-          if (tag.name == name) {
+          if (tag == name) {
             foundTag = true;
             return false;
           }
@@ -116,7 +116,7 @@
         <div v-for="(item) in filteredBookmarks" class="list-group-item border-0">
           <a v-bind:href="item.url" class="fs-bold link-underline link-underline-opacity-0 link-underline-opacity-100-hover">{{ item.title ?? item.url }}</a>
           <div class="font-monospace bookmark-tag">
-            <span v-for="(tag) in item.tags" class="me-1"><a href="javascript:void(0);" class="link-info link-underline link-underline-opacity-0 link-underline-opacity-100-hover" @click="filterTag(tag.name)">#{{ tag.name }}</a></span>
+            <span v-for="(tag) in item.tags" class="me-1"><a href="javascript:void(0);" class="link-info link-underline link-underline-opacity-0 link-underline-opacity-100-hover" @click="filterTag(tag)">#{{ tag }}</a></span>
           </div>
           <div class="bookmark-description">
             <span class="text-truncate">{{ item.description }}</span>
@@ -131,8 +131,8 @@
     <div class="col-lg-3 d-none d-lg-block">
       <h5>Tags</h5>
       <div class="d-flex flex-wrap gap-1">
-        <span v-for="(item) in tags" class="list-group-item border-0">
-          <a href="javascript:void(0);" @click="filterTag(item)" class="link-info link-underline link-underline-opacity-0 link-underline-opacity-100-hover">{{ item }}</a>
+        <span v-for="(tag) in tags" class="list-group-item border-0">
+          <a href="javascript:void(0);" @click="filterTag(tag)" class="link-info link-underline link-underline-opacity-0 link-underline-opacity-100-hover">{{ tag }}</a>
         </span>
       </div>
     </div>
