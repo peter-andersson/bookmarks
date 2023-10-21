@@ -30,7 +30,7 @@ Copy the files from publish folder to somewhere on the linux machine (/opt/bookm
 
 Copy installation/bookmarks.service to /etc/systemd/system
 
-Edit appsettings.json and enter correct database inforamtion.
+Edit appsettings.json and enter correct database information.
 
 sudo systemctl daemon-reload
 sudo systemctl start bookmarks.service
