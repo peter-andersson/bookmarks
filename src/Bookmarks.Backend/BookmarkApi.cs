@@ -101,6 +101,9 @@ internal sealed class BookmarkApi
         }
 
         await HandleTags(dbContext, existing, bookmarkDto, cancellationToken);
+
+        existing.Title = bookmarkDto.Title;
+        existing.Description = bookmarkDto.Description;
         
         await dbContext.SaveChangesAsync(cancellationToken);
         
