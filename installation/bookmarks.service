@@ -7,6 +7,7 @@ User=bookmark
 Group=bookmark
 UMask=0002
 Type=simple
+WorkingDirectory=/opt/bookmarks
 ExecStart=/opt/bookmarks/Bookmarks
 TimeoutStopSec=20
 KillMode=process
