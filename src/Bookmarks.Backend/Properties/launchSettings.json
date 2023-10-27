@@ -1,11 +1,12 @@
 ﻿{
   "profiles": {
-    "Bokmarken": {
+    "Bookmarks": {
       "commandName": "Project",
-      "launchBrowser": false,
-      "applicationUrl": "http://localhost:7153",
+      "launchBrowser": true,
+      "applicationUrl": "https://localhost:7151;http://localhost:5198",
       "environmentVariables": {
-        "ASPNETCORE_ENVIRONMENT": "Development"
+        "ASPNETCORE_ENVIRONMENT": "Development",
+        "ASPNETCORE_HOSTINGSTARTUPASSEMBLIES": "Microsoft.AspNetCore.SpaProxy"
       }
     }
   }
