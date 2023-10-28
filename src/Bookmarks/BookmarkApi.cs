@@ -20,7 +20,6 @@ internal sealed class BookmarkApi
         group.MapGet("/tags", GetTags);
     }
     
-    // TODO: Logmessages
     // TODO: Replace nlog with serielog
     // TODO: Log to json and text?
     // TODO: Log file viewable
@@ -32,14 +31,14 @@ internal sealed class BookmarkApi
         
         if (string.IsNullOrWhiteSpace(bookmarkDto?.Url))
         {
-            logger.LogError("Can't add bookmark, missing url");
+            LogMessages.AddBookmarkMissingUrl(logger);
             return Results.BadRequest("Bookmark is missing url");
         }
 
         var bookmark = await dbContext.Bookmarks.Where(b => b.Url == bookmarkDto.Url).FirstOrDefaultAsync(cancellationToken);
         if (bookmark is not null)
         {
-            logger.LogError("Can't add bookmark, already have bookmark with url {url}", bookmarkDto.Url);
+            LogMessages.AddBookmarkAlreadyExists(logger, bookmarkDto.Url);
             return Results.Conflict();
         }
 
@@ -58,13 +57,15 @@ internal sealed class BookmarkApi
         return Results.Json(ModelConverter.ConvertToDto(bookmark));
     }
     
-    private static async Task<IResult> DeleteBookmark(BookmarkContext dbContext, CancellationToken cancellationToken, [FromRoute]int id)
+    private static async Task<IResult> DeleteBookmark(BookmarkContext dbContext, ILogger<BookmarkApi> logger, CancellationToken cancellationToken, [FromRoute]int id)
     {
         var bookmark = await dbContext.Bookmarks.Include(b => b.Tags).Where(b => b.BookmarkId == id).FirstOrDefaultAsync(cancellationToken: cancellationToken);
         if (bookmark is null)
         {
+            LogMessages.BookmarkNotFound(logger, id);
             return Results.NotFound();
         }
+        
         await dbContext.Bookmarks.Where(b => b.BookmarkId == id).ExecuteDeleteAsync(cancellationToken);
 
         return Results.Ok(ModelConverter.ConvertToDto(bookmark));
@@ -77,14 +78,20 @@ internal sealed class BookmarkApi
         return Results.Json(ModelConverter.ConvertToDto(bookmarks));      
     }
     
-    private static async Task<IResult> GetBookmark(BookmarkContext dbContext, CancellationToken cancellationToken, [FromRoute]int id)
+    private static async Task<IResult> GetBookmark(BookmarkContext dbContext, ILogger<BookmarkApi> logger, CancellationToken cancellationToken, [FromRoute]int id)
     {
         var bookmark = await dbContext.Bookmarks
             .Where(b => b.BookmarkId == id)
             .Include(b => b.Tags)
             .FirstOrDefaultAsync(cancellationToken);
+
+        if (bookmark is not null)
+        {
+            return Results.Json(ModelConverter.ConvertToDto(bookmark));
+        }
         
-        return bookmark is null ? Results.NotFound() : Results.Json(ModelConverter.ConvertToDto((bookmark)));
+        LogMessages.BookmarkNotFound(logger, id);
+        return Results.NotFound();
     }
 
     private static async Task<IResult> GetTags(BookmarkContext dbContext, CancellationToken cancellationToken)
@@ -100,14 +107,14 @@ internal sealed class BookmarkApi
         
         if (string.IsNullOrWhiteSpace(bookmarkDto?.Url))
         {
-            logger.LogError("Can't update bookmark, missing url");
+            LogMessages.UpdateBookmarkMissingUrl(logger);
             return Results.BadRequest("Bookmark is missing url");
         }
 
         var existing = await dbContext.Bookmarks.Where(b => b.BookmarkId == bookmarkDto.Id).Include(b => b.Tags).FirstOrDefaultAsync(cancellationToken);
         if (existing is null)
         {
-            logger.LogError("No bookmark with id {id}", bookmarkDto.Id);
+            LogMessages.BookmarkNotFound(logger, bookmarkDto.Id);
             return Results.NotFound();
         }
 
@@ -118,7 +125,7 @@ internal sealed class BookmarkApi
         
         await dbContext.SaveChangesAsync(cancellationToken);
         
-        return await GetBookmark(dbContext, cancellationToken, existing.BookmarkId);
+        return await GetBookmark(dbContext, logger, cancellationToken, existing.BookmarkId);
     }    
     
     private static async Task HandleTags(BookmarkContext dbContext, Bookmark bookmark, BookmarkDto bookmarkDto,
