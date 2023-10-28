@@ -1,0 +1,30 @@
+<div *ngIf="bookmark">
+  <div class="mb-3">
+    <label for="url" class="form-label">URL</label>
+    <input type="text" class="form-control" id="url" [(ngModel)]="bookmark.url" (input)="loadInfo()">
+  </div>
+
+  <div class="mb-3">
+    <label for="add-tag">Enter tag name:</label>
+    <input id="add-tag" type="text" class="form-control" [(ngModel)]="newTag" [ngbTypeahead]="search" (keyup)="selectTag($event)" />
+  </div>
+
+  <div class="mb-3">
+    <label>Selected tags, click to remove.</label>
+    <div>
+    <span *ngFor="let tag of bookmark.tags" class="me-1"><span class="link-info link-underline link-underline-opacity-0 link-underline-opacity-100-hover tag" (click)="removeTag(tag)">#{{ tag }}</span></span>
+    </div>
+  </div>
+
+  <div class="mb-3">
+    <label for="title" class="form-label">Title</label>
+    <input type="text" class="form-control" id="title" [(ngModel)]="bookmark.title">
+    <div class="form-text">Optional</div>
+  </div>
+
+  <div class="mb-3">
+    <label for="description" class="form-label">Description</label>
+    <input type="text" class="form-control" id="description" [(ngModel)]="bookmark.description">
+    <div class="form-text">Optional</div>
+  </div>
+</div>
