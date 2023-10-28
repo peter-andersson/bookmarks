@@ -3,8 +3,8 @@ import { HttpClient, HttpHeaders } from '@angular/common/http';
 import {Observable, of} from "rxjs";
 import { catchError, map, tap } from 'rxjs/operators';
 
-import { Bookmark } from "./bookmark";
-import {Website} from "./website";
+import { Bookmark } from "../models/bookmark";
+import {Website} from "../models/website";
 
 @Injectable({
   providedIn: 'root'

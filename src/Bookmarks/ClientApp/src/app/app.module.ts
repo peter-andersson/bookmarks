@@ -11,7 +11,6 @@ import { DeleteComponent } from "./delete/delete.component";
 import { AddComponent } from "./add/add.component";
 import { EditComponent } from "./edit/edit.component";
 import { BookmarkEditorComponent } from "./bookmark-editor/bookmark-editor.component";
-import { LoadingButtonDirective } from './loading-button.directive';
 import { NgbModule } from '@ng-bootstrap/ng-bootstrap';
 
 @NgModule({
@@ -22,8 +21,7 @@ import { NgbModule } from '@ng-bootstrap/ng-bootstrap';
     DeleteComponent,
     EditComponent,
     AddComponent,
-    BookmarkEditorComponent,
-    LoadingButtonDirective
+    BookmarkEditorComponent
   ],
   imports: [
     BrowserModule.withServerTransition({ appId: 'ng-cli-universal' }),

@@ -2,8 +2,8 @@ import { Component, OnInit } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
 import { Location } from '@angular/common';
 
-import { Bookmark } from '../bookmark';
-import { BookmarkService } from '../bookmark.service';
+import { Bookmark } from '../models/bookmark';
+import { BookmarkService } from '../services/bookmark.service';
 
 @Component({
   selector: 'app-edit',
@@ -11,7 +11,8 @@ import { BookmarkService } from '../bookmark.service';
   styleUrls: ['./edit.component.css']
 })
 export class EditComponent implements OnInit {
-  bookmark: Bookmark | undefined;
+  public bookmark: Bookmark | undefined;
+  public saving: boolean = false;
 
   constructor(
     private route: ActivatedRoute,
@@ -29,12 +30,26 @@ export class EditComponent implements OnInit {
       .subscribe(bookmark => this.bookmark = bookmark);
   }
 
-  delete(): void {
-    this.bookmarkService.deleteBookmark(this.bookmark?.id ?? 0)
-      .subscribe(_ => this.location.back());
+  save() {
+    if (!this.bookmark) {
+      return;
+    }
+
+    // TODO: Validate model...
+
+    this.saving = true;
+
+    this.bookmarkService.updateBookmark(this.bookmark)
+      .subscribe(bookmark => {
+        if (bookmark) {
+          this.location.back();
+        }
+
+        this.saving = false;
+      });
   }
 
-  goBack(): void {
+  cancel() {
     this.location.back();
   }
 }

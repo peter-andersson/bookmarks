@@ -1,3 +1,9 @@
-<p>edit works!</p>
+<h1>Edit bookmark</h1>
 
-<app-bookmark-editor></app-bookmark-editor>
+<app-bookmark-editor [bookmark]="bookmark"></app-bookmark-editor>
+
+<button type="button" class="btn btn-success" (click)="save()" [disabled]="saving">
+  <span class="spinner-border spinner-border-sm" aria-hidden="true" *ngIf="saving"></span>
+  <span role="status">Save</span>
+</button>
+<button type="button" class="btn btn-secondary ms-2" (click)="cancel()">Cancel</button>

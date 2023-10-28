@@ -5,3 +5,7 @@
 .bookmark-description {
   font-size: smaller;
 }
+
+.tag {
+  cursor: pointer;
+}

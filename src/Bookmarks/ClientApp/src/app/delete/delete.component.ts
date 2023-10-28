@@ -2,8 +2,8 @@ import { Component, OnInit } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
 import { Location } from '@angular/common';
 
-import { Bookmark } from '../bookmark';
-import { BookmarkService } from '../bookmark.service';
+import { Bookmark } from '../models/bookmark';
+import { BookmarkService } from '../services/bookmark.service';
 
 @Component({
   selector: 'app-delete',
@@ -11,7 +11,8 @@ import { BookmarkService } from '../bookmark.service';
   styleUrls: ['./delete.component.css']
 })
 export class DeleteComponent implements OnInit {
-  bookmark: Bookmark | undefined;
+  public bookmark: Bookmark | undefined;
+  public deleting: boolean = false;
 
   constructor(
     private route: ActivatedRoute,
@@ -30,11 +31,19 @@ export class DeleteComponent implements OnInit {
   }
 
   delete(): void {
+    this.deleting = true;
+
     this.bookmarkService.deleteBookmark(this.bookmark?.id ?? 0)
-      .subscribe(_ => this.location.back());
+      .subscribe(bookmark => {
+        if (bookmark) {
+          this.location.back();
+        }
+
+        this.deleting = false;
+      });
   }
 
-  goBack(): void {
+  cancel(): void {
     this.location.back();
   }
 }
