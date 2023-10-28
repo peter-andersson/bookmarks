@@ -17,6 +17,8 @@ public static class ModelConverter
         {
             result.Tags.Add(tag.Name);
         }
+        
+        result.Tags.Sort();
 
         return result;
     }
@@ -24,14 +26,14 @@ public static class ModelConverter
     public static List<BookmarkDto> ConvertToDto(List<Bookmark> bookmarks)
     {
         var result = new List<BookmarkDto>(bookmarks.Count);
-        result.AddRange(bookmarks.Select(ConvertToDto));
+        result.AddRange(bookmarks.Select(ConvertToDto).OrderBy(s => s.Title));
         return result;
     }
 
     public static List<string> ConvertToDto(List<Tag> tags)
     {
         var result = new List<string>(tags.Count);
-        result.AddRange(tags.Select(t => t.Name));
+        result.AddRange(tags.Select(t => t.Name).OrderBy(s => s));
         return result;
     }
 }
