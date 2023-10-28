@@ -1,18 +1,25 @@
 using Bookmarks;
 using Bookmarks.Data;
 using Microsoft.EntityFrameworkCore;
-using NLog;
-using NLog.Web;
+using Serilog;
+using Serilog.Events;
 
-var logger = LogManager.Setup().LoadConfigurationFromAppSettings().GetCurrentClassLogger();
-logger.Debug("Application startup");
+Log.Logger = new LoggerConfiguration()
+    .MinimumLevel.Override("Microsoft", LogEventLevel.Information)
+    .WriteTo.Console()
+    .CreateBootstrapLogger();
 
 try
 {
+    Log.Information("Starting web application");
+    
     var builder = WebApplication.CreateBuilder(args);
     
-    builder.Logging.ClearProviders();
-    builder.Host.UseNLog();
+    builder.Host.UseSerilog((context, services, configuration) => configuration
+        .ReadFrom.Configuration(context.Configuration)
+        .ReadFrom.Services(services)
+        .Enrich.FromLogContext()
+        .WriteTo.Console());
     
     builder.Services.AddDbContext<BookmarkContext>(options =>
         options.UseNpgsql(builder.Configuration.GetConnectionString("Bookmark")));    
@@ -23,6 +30,8 @@ try
     });
     
     var app = builder.Build();
+    
+    app.UseSerilogRequestLogging();
 
     using (var scope = app.Services.CreateScope())
     {
@@ -41,11 +50,10 @@ try
 }
 catch (Exception exception)
 {
-    logger.Fatal(exception, "Stopped program because of exception");
+    Log.Fatal(exception, "Application terminated unexpectedly");
     throw;
 }
 finally
 {
-    // Ensure to flush and stop internal timers/threads before application-exit (Avoid segmentation fault on Linux)
-    LogManager.Shutdown();
+    Log.CloseAndFlush();
 }

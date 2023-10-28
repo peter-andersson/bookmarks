@@ -26,11 +26,10 @@
             <PrivateAssets>all</PrivateAssets>
             <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
         </PackageReference>
-        <PackageReference Include="NLog" Version="5.2.4" />
-        <PackageReference Include="NLog.Web.AspNetCore" Version="5.3.4" />
         <PackageReference Include="Npgsql" Version="7.0.6" />
         <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="7.0.11" />
         <PackageReference Include="Microsoft.AspNetCore.SpaProxy" Version="7.0.13"/>
+        <PackageReference Include="Serilog.AspNetCore" Version="7.0.0" />
     </ItemGroup>
 
     <ItemGroup>
