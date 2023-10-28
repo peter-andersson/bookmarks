@@ -20,8 +20,6 @@ internal sealed class BookmarkApi
         group.MapGet("/tags", GetTags);
     }
     
-    // TODO: Toast service in frontent
-    
     private static async Task<IResult> AddBookmark(BookmarkContext dbContext, ILogger<BookmarkApi> logger, HttpRequest request, CancellationToken cancellationToken)
     {
         var bookmarkDto = await request.ReadFromJsonAsync<BookmarkDto>(cancellationToken);

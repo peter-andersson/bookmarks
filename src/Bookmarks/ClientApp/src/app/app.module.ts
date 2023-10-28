@@ -12,6 +12,7 @@ import { AddComponent } from "./add/add.component";
 import { EditComponent } from "./edit/edit.component";
 import { BookmarkEditorComponent } from "./bookmark-editor/bookmark-editor.component";
 import { NgbModule } from '@ng-bootstrap/ng-bootstrap';
+import { ToastContainerComponent } from './toast-container/toast-container.component';
 
 @NgModule({
   declarations: [
@@ -21,7 +22,8 @@ import { NgbModule } from '@ng-bootstrap/ng-bootstrap';
     DeleteComponent,
     EditComponent,
     AddComponent,
-    BookmarkEditorComponent
+    BookmarkEditorComponent,
+    ToastContainerComponent
   ],
   imports: [
     BrowserModule.withServerTransition({ appId: 'ng-cli-universal' }),
