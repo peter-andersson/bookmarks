@@ -83,11 +83,11 @@
       </div>
     </fieldset>
 
-    <button type="button" class="btn btn-danger" @click="deleteBookmark" v-bind:disabled="deleting">
+    <button type="button" class="btn btn-danger" (click)="delete" v-bind:disabled="deleting">
       <span v-if="deleting" class="spinner-border spinner-border-sm" aria-hidden="true"></span>
       <span v-if="deleting" role="status">Deleting...</span>
       <span v-if="!deleting">Delete </span>
     </button>
-    <button type="button" class="btn btn-secondary ms-2" @click="cancel">Cancel</button>
+    <button type="button" class="btn btn-secondary ms-2" (click)="goBack()">Cancel</button>
   </div>
 </template>

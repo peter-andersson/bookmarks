@@ -132,7 +132,6 @@
       }
     }
   },
-  "defaultProject": "ASP.NETCoreWebApplication1",
   "cli": {
     "analytics": "60edcf6f-22ac-49a6-adfc-4072181fbbdc"
   }

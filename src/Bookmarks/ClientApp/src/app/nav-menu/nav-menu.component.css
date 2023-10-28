@@ -1,18 +1,12 @@
-a.navbar-brand {
-  white-space: normal;
-  text-align: center;
-  word-break: break-all;
+.nav-link {
+  color: #ddd;
 }
 
-html {
-  font-size: 14px;
-}
-@media (min-width: 768px) {
-  html {
-    font-size: 16px;
-  }
+.nav-link:focus, .nav-link:hover {
+  color: #888;
 }
 
-.box-shadow {
-  box-shadow: 0 .25rem .75rem rgba(0, 0, 0, .05);
+.nav-link.active {
+  color: #9b9494;
+  text-decoration: underline;
 }

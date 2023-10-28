@@ -6,27 +6,36 @@ import { RouterModule } from '@angular/router';
 
 import { AppComponent } from './app.component';
 import { NavMenuComponent } from './nav-menu/nav-menu.component';
-import { HomeComponent } from './home/home.component';
-import { CounterComponent } from './counter/counter.component';
-import { FetchDataComponent } from './fetch-data/fetch-data.component';
+import { BookmarksComponent } from "./bookmarks/bookmarks.component";
+import { DeleteComponent } from "./delete/delete.component";
+import { AddComponent } from "./add/add.component";
+import { EditComponent } from "./edit/edit.component";
+import { BookmarkEditorComponent } from "./bookmark-editor/bookmark-editor.component";
+import { LoadingButtonDirective } from './loading-button.directive';
+import { NgbModule } from '@ng-bootstrap/ng-bootstrap';
 
 @NgModule({
   declarations: [
     AppComponent,
     NavMenuComponent,
-    HomeComponent,
-    CounterComponent,
-    FetchDataComponent
+    BookmarksComponent,
+    DeleteComponent,
+    EditComponent,
+    AddComponent,
+    BookmarkEditorComponent,
+    LoadingButtonDirective
   ],
   imports: [
     BrowserModule.withServerTransition({ appId: 'ng-cli-universal' }),
     HttpClientModule,
     FormsModule,
     RouterModule.forRoot([
-      { path: '', component: HomeComponent, pathMatch: 'full' },
-      { path: 'counter', component: CounterComponent },
-      { path: 'fetch-data', component: FetchDataComponent },
-    ])
+      { path: '', component: BookmarksComponent, pathMatch: 'full' },
+      { path: 'add', component: AddComponent },
+      { path: 'delete/:id', component: DeleteComponent },
+      { path: 'edit/:id', component: EditComponent },
+    ]),
+    NgbModule
   ],
   providers: [],
   bootstrap: [AppComponent]
