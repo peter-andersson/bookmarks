@@ -20,6 +20,12 @@ internal sealed class BookmarkApi
         group.MapGet("/tags", GetTags);
     }
     
+    // TODO: Logmessages
+    // TODO: Replace nlog with serielog
+    // TODO: Log to json and text?
+    // TODO: Log file viewable
+    // TODO: Toast service in frontent
+    
     private static async Task<IResult> AddBookmark(BookmarkContext dbContext, ILogger<BookmarkApi> logger, HttpRequest request, CancellationToken cancellationToken)
     {
         var bookmarkDto = await request.ReadFromJsonAsync<BookmarkDto>(cancellationToken);
@@ -54,9 +60,14 @@ internal sealed class BookmarkApi
     
     private static async Task<IResult> DeleteBookmark(BookmarkContext dbContext, CancellationToken cancellationToken, [FromRoute]int id)
     {
+        var bookmark = await dbContext.Bookmarks.Include(b => b.Tags).Where(b => b.BookmarkId == id).FirstOrDefaultAsync(cancellationToken: cancellationToken);
+        if (bookmark is null)
+        {
+            return Results.NotFound();
+        }
         await dbContext.Bookmarks.Where(b => b.BookmarkId == id).ExecuteDeleteAsync(cancellationToken);
 
-        return Results.Ok();
+        return Results.Ok(ModelConverter.ConvertToDto(bookmark));
     }
 
     private static async Task<IResult> GetBookmarks(BookmarkContext dbContext, CancellationToken cancellationToken)
