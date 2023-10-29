@@ -3,9 +3,7 @@
 
 name: Release
 
-on:
-  release:
-    types: [published]
+on: workflow_dispatch
 
 jobs:
   build:
@@ -39,12 +37,12 @@ jobs:
     - name: Upload a Build Artifact for Windows
       uses: actions/upload-artifact@v3
       with:
-        name: website
+        name: win-x64
         path: src/Bookmarks/bin/publish/win-x64/**
         if-no-files-found: error
     - name: Upload a Build Artifact for Linux
       uses: actions/upload-artifact@v3
       with:
-        name: website
+        name: linux-x64
         path: src/Bookmarks/bin/publish/linux-x64/**
         if-no-files-found: error      
