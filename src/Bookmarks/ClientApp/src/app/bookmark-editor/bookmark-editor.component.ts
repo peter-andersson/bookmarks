@@ -14,7 +14,8 @@ export class BookmarkEditorComponent implements OnInit {
   @Input() bookmark?:Bookmark;
 
   tags: string[] = [];
-  public newTag: any;
+  newTag: any;
+  loadingInfo: boolean = false;
 
   constructor(private bookmarkService: BookmarkService) {}
 
@@ -41,12 +42,15 @@ export class BookmarkEditorComponent implements OnInit {
       return;
     }
 
+    this.loadingInfo = true;
     this.bookmarkService.loadInfo(this.bookmark.url)
       .subscribe(siteInfo => {
         if (this.bookmark) {
           this.bookmark.title = siteInfo.title;
           this.bookmark.description = siteInfo.description;
         }
+
+        this.loadingInfo = false;
       });
   }
 
