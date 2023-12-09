@@ -1,9 +1,0 @@
-<h1>Add bookmark</h1>
-
-<app-bookmark-editor [bookmark]="bookmark"></app-bookmark-editor>
-
-<button type="button" class="btn btn-success" (click)="add()" [disabled]="adding">
-  <span class="spinner-border spinner-border-sm" aria-hidden="true" *ngIf="adding"></span>
-  <span role="status">Add</span>
-</button>
-<button type="button" class="btn btn-secondary ms-2" (click)="cancel()">Cancel</button>
