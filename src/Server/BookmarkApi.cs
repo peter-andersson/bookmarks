@@ -10,7 +10,7 @@ internal sealed class BookmarkApi
 {
     public static void MapEndpoints(WebApplication app)
     {
-        var group = app.MapGroup("/api/bookmark").RequireAuthorization();
+        var group = app.MapGroup("/api/bookmark").RequireAuthorization().WithOpenApi();
         group.MapGet("/", GetBookmarks);
         group.MapGet("/{id:int}", GetBookmark);
         group.MapPost("/", AddBookmark);

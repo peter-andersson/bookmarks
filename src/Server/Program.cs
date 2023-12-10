@@ -1,4 +1,4 @@
-using System.Text.Json;
+using System.Security.Claims;
 using Bookmarks.Server;
 using Bookmarks.Server.Data;
 using Bookmarks.Shared;
@@ -17,6 +17,9 @@ try
     Log.Information("Starting web application");
     
     var builder = WebApplication.CreateBuilder(args);
+    
+    builder.Services.AddAuthentication(IdentityConstants.ApplicationScheme).AddIdentityCookies();
+    builder.Services.AddAuthorizationBuilder();    
 
     builder.Services.AddDbContext<BookmarkContext>(options =>
         options.UseNpgsql(builder.Configuration.GetConnectionString("Bookmark")));
@@ -24,13 +27,15 @@ try
     builder.Services.AddControllers().AddJsonOptions(
         static options =>
             options.JsonSerializerOptions.TypeInfoResolverChain.Add(SerializerContext.Default));
-
-    builder.Services.AddAuthorization();
-
-    builder.Services.AddIdentityApiEndpoints<IdentityUser>()
-        .AddEntityFrameworkStores<BookmarkContext>();
+    
+    builder.Services.AddIdentityCore<IdentityUser>()
+        .AddEntityFrameworkStores<BookmarkContext>()
+        .AddApiEndpoints();
     
     builder.Host.UseSerilog();
+    
+    builder.Services.AddEndpointsApiExplorer();
+    builder.Services.AddSwaggerGen();        
 
     var app = builder.Build();
 
@@ -42,22 +47,31 @@ try
         db.Database.Migrate();
     }
 
-    app.MapIdentityApi<IdentityUser>();
-
-// Configure the HTTP request pipeline.
+    // Configure the HTTP request pipeline.
     if (app.Environment.IsDevelopment())
     {
         app.UseWebAssemblyDebugging();
+        app.UseSwagger();
+        app.UseSwaggerUI();
     }
 
     app.UseBlazorFrameworkFiles();
     app.UseStaticFiles();
 
-    app.UseRouting();
-
     BookmarkApi.MapEndpoints(app);
+    app.MapIdentityApi<IdentityUser>();    
+    
+    // provide an end point to clear the cookie for logout
+    // NOTE: This logout code will be updated shortly.
+    //       https://github.com/dotnet/blazor-samples/issues/132
+    app.MapPost("/Logout", async (ClaimsPrincipal user, SignInManager<IdentityUser> signInManager) =>
+    {
+        await signInManager.SignOutAsync();
+        return TypedResults.Ok();
+    });
 
-    app.MapControllers();
+    app.UseCors("wasm");    
+
     app.MapFallbackToFile("index.html");
 
     app.Run();
