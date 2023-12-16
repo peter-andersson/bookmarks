@@ -2,12 +2,16 @@
 
 @inject NavigationManager NavigationManager
 
-<header>
-    <nav class="nav justify-content-center">
-        <a class="nav-link" [routerLinkActive]="['active']" [routerLink]="['/']">Bookmark</a>
-        <a class="nav-link" [routerLinkActive]="['active']" [routerLink]="['/add']">Add bookmark</a>
-    </nav>
-</header>
+<AuthorizeView>
+    <Authorized>
+        <header>
+            <nav class="nav justify-content-center">
+                <a class="nav-link" [routerLinkActive]="['active']" [routerLink]="['/']">Bookmark</a>
+                <a class="nav-link" [routerLinkActive]="['active']" [routerLink]="['/add']">Add bookmark</a>
+            </nav>
+        </header>
+    </Authorized>
+</AuthorizeView>
 
 @* <div class="top-row ps-3 navbar navbar-dark"> *@
 @*   <div class="container-fluid"> *@
