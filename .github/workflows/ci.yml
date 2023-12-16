@@ -18,24 +18,11 @@ jobs:
     - name: Setup .NET
       uses: actions/setup-dotnet@v3
       with:
-        dotnet-version: 7.0.x
-    - name: Setup Node.js
-      uses: actions/setup-node@v3
-      with:
-        node-version: 18.x        
+        dotnet-version: 8.0.x    
     - name: Restore dependencies
-      working-directory: src/
       run: dotnet restore
     - name: Build
-      working-directory: src/
       run: dotnet build --no-restore
     - name: Test
-      working-directory: src/
       run: dotnet test --no-build --verbosity normal
-    - name: Restore node packages
-      run: npm install
-      working-directory: src/Bookmarks/ClientApp
-    - name: Build frontend
-      run: npm run build
-      working-directory: src/Bookmarks/ClientApp
       
