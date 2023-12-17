@@ -6,7 +6,7 @@ namespace Bookmarks.Data;
 
 #nullable disable
 
-public class BookmarkContext : IdentityDbContext<IdentityUser>
+public class BookmarkContext : IdentityDbContext<ApplicationUser>
 {
     public BookmarkContext(DbContextOptions<BookmarkContext> options) :
         base(options) { }
