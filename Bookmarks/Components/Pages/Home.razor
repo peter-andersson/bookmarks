@@ -1,4 +1,10 @@
 ﻿@page "/"
+@using Bookmarks.Data
+@using System.Security.Claims
+@using Microsoft.EntityFrameworkCore
+
+@inject BookmarkContext DbContext
+@inject IHttpContextAccessor httpContextAccessor
 
 @attribute [Authorize]
 
@@ -16,19 +22,22 @@
           <div class="col-12 col-lg-9">
             <h5>Bookmarks</h5>
             <div class="list-group">
-              <div *ngFor="let bookmark of filteredBookmarks" class="list-group-item border-0">
-                <a href="{{bookmark.url}}" class="fs-bold link-underline link-underline-opacity-0 link-underline-opacity-100-hover">{{ bookmark.title ?? bookmark.url }}</a>
-                <div class="bookmark-description d-flex">
-                  <span class="text-truncate">{{ bookmark.description }}</span>
-                </div>
-                <div class="font-monospace bookmark-tag">
-                  <span *ngFor="let tag of bookmark.tags" class="me-1"><a class="link-info link-underline link-underline-opacity-0 link-underline-opacity-100-hover tag" (click)="filterTag(tag)">#{{ tag }}</a></span>
-                </div>
-                <div class="bookmark-description">
-                  <a routerLink="/edit/{{bookmark.id}}" class="link-success link-underline link-underline-opacity-0 link-underline-opacity-100-hover">Edit</a>
-                  <a routerLink="/delete/{{bookmark.id}}" class="link-danger link-underline link-underline-opacity-0 link-underline-opacity-100-hover flex-grow-1 float-end">Delete</a>
-                </div>
-              </div>
+              @foreach (var bookmark in Bookmarks)
+              {
+                <div *ngFor="let bookmark of filteredBookmarks" class="list-group-item border-0">
+                  <a href="@bookmark.Url" class="fs-bold link-underline link-underline-opacity-0 link-underline-opacity-100-hover">@(string.IsNullOrWhiteSpace(bookmark.Title) ? bookmark.Url : bookmark.Title)</a>
+                  <div class="bookmark-description d-flex">
+                    <span class="text-truncate">@bookmark.Description</span>
+                  </div>
+                  <div class="font-monospace bookmark-tag">
+                    <span *ngFor="let tag of bookmark.tags" class="me-1"><a class="link-info link-underline link-underline-opacity-0 link-underline-opacity-100-hover tag" (click)="filterTag(tag)">#{{ tag }}</a></span>
+                  </div>
+                  <div class="bookmark-description">
+                    <a routerLink="/edit/@bookmark.BookmarkId" class="link-success link-underline link-underline-opacity-0 link-underline-opacity-100-hover">Edit</a>
+                    <a routerLink="/delete/@bookmark.BookmarkId" class="link-danger link-underline link-underline-opacity-0 link-underline-opacity-100-hover flex-grow-1 float-end">Delete</a>
+                  </div>
+                </div>  
+              }
             </div>
           </div>
           <div class="col-lg-3 d-none d-lg-block">
@@ -44,5 +53,17 @@
 </AuthorizeView>
 
 @code {
-  
+
+  public IEnumerable<Bookmark> Bookmarks { get; set; } = [];
+
+  protected override async Task OnInitializedAsync()
+  {
+    var personIdString = httpContextAccessor?.HttpContext?.User.FindFirstValue("PersonId");
+    if (!int.TryParse(personIdString, out var personId))
+    {
+      return;
+    }
+
+    Bookmarks = await DbContext.Bookmarks.Where(b => b.PersonId == personId).ToListAsync();
+  }
 }
