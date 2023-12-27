@@ -1,10 +1,8 @@
 ﻿@page "/"
-@using Bookmarks.Data
-@using System.Security.Claims
-@using Microsoft.EntityFrameworkCore
 
 @inject BookmarkContext DbContext
-@inject IHttpContextAccessor httpContextAccessor
+@inject IHttpContextAccessor HttpContextAccessor
+@inject SignInManager<ApplicationUser> SignInManager
 
 @attribute [Authorize]
 
@@ -22,7 +20,7 @@
           <div class="col-12 col-lg-9">
             <h5>Bookmarks</h5>
             <div class="list-group">
-              @foreach (var bookmark in Bookmarks)
+              @foreach (var bookmark in BookmarkList)
               {
                 <div *ngFor="let bookmark of filteredBookmarks" class="list-group-item border-0">
                   <a href="@bookmark.Url" class="fs-bold link-underline link-underline-opacity-0 link-underline-opacity-100-hover">@(string.IsNullOrWhiteSpace(bookmark.Title) ? bookmark.Url : bookmark.Title)</a>
@@ -30,7 +28,10 @@
                     <span class="text-truncate">@bookmark.Description</span>
                   </div>
                   <div class="font-monospace bookmark-tag">
-                    <span *ngFor="let tag of bookmark.tags" class="me-1"><a class="link-info link-underline link-underline-opacity-0 link-underline-opacity-100-hover tag" (click)="filterTag(tag)">#{{ tag }}</a></span>
+                    @foreach (var tag in bookmark.Tags)
+                    {
+                      <span class="me-1"><a class="link-info link-underline link-underline-opacity-0 link-underline-opacity-100-hover tag" (click)="filterTag(tag)">#@tag.Name</a></span>
+                    }
                   </div>
                   <div class="bookmark-description">
                     <a routerLink="/edit/@bookmark.BookmarkId" class="link-success link-underline link-underline-opacity-0 link-underline-opacity-100-hover">Edit</a>
@@ -43,9 +44,12 @@
           <div class="col-lg-3 d-none d-lg-block">
             <h5>Tags</h5>
             <div class="d-flex flex-wrap gap-1">
-                <span *ngFor="let tag of tags" class="list-group-item border-0">
-                  <a (click)="filterTag(tag)" class="link-info link-underline link-underline-opacity-0 link-underline-opacity-100-hover tag">{{ tag }}</a>
+              @foreach (var tag in Tags)
+              {
+                <span class="list-group-item border-0">
+                  <a (click)="filterTag(tag)" class="link-info link-underline link-underline-opacity-0 link-underline-opacity-100-hover tag">@tag.Name</a>
                 </span>
+              }
             </div>
           </div>
         </div>
@@ -54,16 +58,38 @@
 
 @code {
 
-  public IEnumerable<Bookmark> Bookmarks { get; set; } = [];
+  private IEnumerable<Bookmark> BookmarkList { get; set; } = [];
+  private IEnumerable<Tag> Tags { get; set; } = [];
 
   protected override async Task OnInitializedAsync()
   {
-    var personIdString = httpContextAccessor?.HttpContext?.User.FindFirstValue("PersonId");
+    var personIdString = HttpContextAccessor?.HttpContext?.User.FindFirstValue("PersonId");
     if (!int.TryParse(personIdString, out var personId))
     {
-      return;
+      var userId = HttpContextAccessor?.HttpContext?.User.FindFirstValue(ClaimTypes.NameIdentifier);
+      if (userId is not null)
+      {
+        personId = await DbContext.Persons.Where(p => p.ApplicationUserId == userId).Select(p => p.PersonId).FirstOrDefaultAsync();
+        if (personId > 0)
+        {
+          var user = await SignInManager.UserManager.Users.FirstOrDefaultAsync(u => u.Id == userId);
+          if (user is null)
+          {
+            return;
+          }
+          
+          var customClaims = new[] { new Claim("PersonId", personId.ToString()) };            
+          await SignInManager.SignOutAsync();
+          await SignInManager.SignInWithClaimsAsync(user, true, customClaims);
+        }
+        else
+        {
+          return;
+        }
+      }
     }
 
-    Bookmarks = await DbContext.Bookmarks.Where(b => b.PersonId == personId).ToListAsync();
+    BookmarkList = await DbContext.Bookmarks.Include(b => b.Tags).Where(b => b.PersonId == personId).ToListAsync();
+    Tags = await DbContext.Tags.Where(t => t.PersonId == personId).ToListAsync();                                   
   }
 }
