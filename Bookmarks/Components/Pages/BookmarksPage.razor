@@ -12,15 +12,15 @@
     <Authorized>
         <div class="row">
           <div class="input-group mb-3">
-            <input type="text" class="form-control" placeholder="Search for bookmarks" [(ngModel)]="searchText" (keyup)="searchKeyup($event)">
-            <span class="input-group-text" id="basic-addon1"><button class="btn btn-sm btn-primary" type="button" (click)="search()">Search</button></span>
+            <input type="text" class="form-control" placeholder="Search for bookmarks" (keyup)="searchKeyup($event)" @bind="FilterText">
+            <span class="input-group-text" id="basic-addon1"><button class="btn btn-sm btn-primary" type="button" @onclick="ApplyFilter">Search</button></span>
           </div>
         </div>
         <div class="row">
           <div class="col-12 col-lg-9">
             <h5>Bookmarks</h5>
             <div class="list-group">
-              @foreach (var bookmark in BookmarkList)
+              @foreach (var bookmark in FilteredBookmarks)
               {
                 <div *ngFor="let bookmark of filteredBookmarks" class="list-group-item border-0">
                   <a href="@bookmark.Url" class="fs-bold link-underline link-underline-opacity-0 link-underline-opacity-100-hover">@(string.IsNullOrWhiteSpace(bookmark.Title) ? bookmark.Url : bookmark.Title)</a>
@@ -30,7 +30,7 @@
                   <div class="font-monospace bookmark-tag">
                     @foreach (var tag in bookmark.Tags)
                     {
-                      <span class="me-1"><a class="link-info link-underline link-underline-opacity-0 link-underline-opacity-100-hover tag" (click)="filterTag(tag)">#@tag.Name</a></span>
+                      <span class="me-1 text-info tag" @onclick="()  => FilterTag(tag)">#@tag.Name</span>
                     }
                   </div>
                   <div class="bookmark-description">
@@ -47,7 +47,7 @@
               @foreach (var tag in Tags)
               {
                 <span class="list-group-item border-0">
-                  <a (click)="filterTag(tag)" class="link-info link-underline link-underline-opacity-0 link-underline-opacity-100-hover tag">@tag.Name</a>
+                  <span class="text-info tag" @onclick="() => FilterTag(tag)">@tag.Name</span>
                 </span>
               }
             </div>
@@ -58,7 +58,9 @@
 
 @code {
 
+  private string FilterText { get; set; } = string.Empty;
   private IEnumerable<Bookmark> BookmarkList { get; set; } = [];
+  private IEnumerable<Bookmark> FilteredBookmarks { get; set; } = [];
   private IEnumerable<Tag> Tags { get; set; } = [];
 
   protected override async Task OnInitializedAsync()
@@ -89,7 +91,19 @@
       }
     }
 
-    BookmarkList = await DbContext.Bookmarks.Include(b => b.Tags).Where(b => b.PersonId == personId).ToListAsync();
-    Tags = await DbContext.Tags.Where(t => t.PersonId == personId).ToListAsync();                                   
+    BookmarkList = await DbContext.Bookmarks.Include(b => b.Tags).Where(b => b.PersonId == personId).OrderBy(b => b.Title).ToListAsync();
+    FilteredBookmarks = BookmarkList;
+    Tags = await DbContext.Tags.Where(t => t.PersonId == personId).OrderBy(t => t.Name).ToListAsync();                                   
+  }
+
+  private void FilterTag(Tag tag)
+  {
+    FilterText = $"#{tag.Name}";
+    FilteredBookmarks = BookmarkList.Where(b => b.Tags.Contains(tag)).ToList();
+  }
+
+  private void ApplyFilter()
+  {
+    FilterText = "HELLO WORLD!";
   }
 }

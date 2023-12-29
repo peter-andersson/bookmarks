@@ -14,7 +14,17 @@
 
 <body>
     <Routes />
-    <script src="_framework/blazor.web.js"></script>
+    <script src="_framework/blazor.server.js" autostart="false"></script>
+    <script>
+        Blazor.start({
+            configureSignalR: function (builder) {
+                builder.withUrl("/_blazor", {
+                    skipNegotiation: true,
+                    transport: 1
+                });
+            }
+        });
+    </script>    
 </body>
 
 </html>

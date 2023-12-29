@@ -1,9 +1,6 @@
 @page "/Account/Logout"
-@using Bookmarks.Data
-@using Microsoft.AspNetCore.Identity
 
 @inject SignInManager<ApplicationUser> SignInManager
-@inject NavigationManager NavigationManager
 @inject IdentityRedirectManager RedirectManager
 
 @attribute [Authorize]
