@@ -36,12 +36,12 @@ try
         .AddIdentityCookies();
 
     var connectionString = builder.Configuration.GetConnectionString("Bookmark") ?? throw new InvalidOperationException("Connection string 'DefaultConnection' not found.");
-    builder.Services.AddDbContext<BookmarkContext>(options =>
+    builder.Services.AddDbContextFactory<BookmarkContext>(options =>
         options.UseNpgsql(connectionString));
     builder.Services.AddDatabaseDeveloperPageExceptionFilter();
 
     builder.Services.AddIdentityCore<ApplicationUser>(options => options.SignIn.RequireConfirmedAccount = true)
-        .AddEntityFrameworkStores<BookmarkContext>()
+        .AddEntityFrameworkStores<BookmarkContext>()            
         .AddSignInManager()
         .AddDefaultTokenProviders();
 

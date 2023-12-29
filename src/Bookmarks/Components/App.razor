@@ -1,5 +1,5 @@
 ﻿<!DOCTYPE html>
-<html lang="en" data-bs-theme="dark">
+<html lang="en">
 
 <head>
     <meta charset="utf-8" />
@@ -14,17 +14,7 @@
 
 <body>
     <Routes />
-    <script src="_framework/blazor.server.js" autostart="false"></script>
-    <script>
-        Blazor.start({
-            configureSignalR: function (builder) {
-                builder.withUrl("/_blazor", {
-                    skipNegotiation: true,
-                    transport: 1
-                });
-            }
-        });
-    </script>    
+    <script src="_framework/blazor.web.js"></script>
 </body>
 
 </html>

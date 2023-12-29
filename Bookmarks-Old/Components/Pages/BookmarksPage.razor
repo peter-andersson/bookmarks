@@ -1,6 +1,10 @@
 ﻿@page "/"
 
-@inject BookmarkContext DbContext
+@rendermode InteractiveServer
+
+@implements IDisposable
+@inject IDbContextFactory<BookmarkContext> DbFactory
+
 @inject IHttpContextAccessor HttpContextAccessor
 @inject SignInManager<ApplicationUser> SignInManager
 
@@ -58,6 +62,9 @@
 
 @code {
 
+  private BookmarkContext? DbContext;
+
+  private bool Busy { get; set; }
   private string FilterText { get; set; } = string.Empty;
   private IEnumerable<Bookmark> BookmarkList { get; set; } = [];
   private IEnumerable<Bookmark> FilteredBookmarks { get; set; } = [];
@@ -65,35 +72,51 @@
 
   protected override async Task OnInitializedAsync()
   {
-    var personIdString = HttpContextAccessor?.HttpContext?.User.FindFirstValue("PersonId");
-    if (!int.TryParse(personIdString, out var personId))
+    Busy = true;
+
+    try
     {
-      var userId = HttpContextAccessor?.HttpContext?.User.FindFirstValue(ClaimTypes.NameIdentifier);
-      if (userId is not null)
+      DbContext = DbFactory.CreateDbContext();
+
+      if (DbContext is not null)
       {
-        personId = await DbContext.Persons.Where(p => p.ApplicationUserId == userId).Select(p => p.PersonId).FirstOrDefaultAsync();
-        if (personId > 0)
+        var personIdString = HttpContextAccessor?.HttpContext?.User.FindFirstValue("PersonId");
+        if (!int.TryParse(personIdString, out var personId))
         {
-          var user = await SignInManager.UserManager.Users.FirstOrDefaultAsync(u => u.Id == userId);
-          if (user is null)
+          var userId = HttpContextAccessor?.HttpContext?.User.FindFirstValue(ClaimTypes.NameIdentifier);
+          if (userId is not null)
           {
-            return;
-          }
+            personId = await DbContext.Persons.Where(p => p.ApplicationUserId == userId).Select(p => p.PersonId).FirstOrDefaultAsync();
+            if (personId > 0)
+            {
+              var user = await SignInManager.UserManager.Users.FirstOrDefaultAsync(u => u.Id == userId);
+              if (user is null)
+              {
+                return;
+              }
           
-          var customClaims = new[] { new Claim("PersonId", personId.ToString()) };            
-          await SignInManager.SignOutAsync();
-          await SignInManager.SignInWithClaimsAsync(user, true, customClaims);
+              var customClaims = new[] { new Claim("PersonId", personId.ToString()) };            
+              await SignInManager.SignOutAsync();
+              await SignInManager.SignInWithClaimsAsync(user, true, customClaims);
+            }
+            else
+            {
+              return;
+            }
+          }
         }
-        else
-        {
-          return;
-        }
+        
+        BookmarkList = await DbContext.Bookmarks.Include(b => b.Tags).Where(b => b.PersonId == personId).OrderBy(b => b.Title).ToListAsync();
+        FilteredBookmarks = BookmarkList;
+        Tags = await DbContext.Tags.Where(t => t.PersonId == personId).OrderBy(t => t.Name).ToListAsync();           
       }
     }
+    finally
+    {
+      Busy = false;
+    }
 
-    BookmarkList = await DbContext.Bookmarks.Include(b => b.Tags).Where(b => b.PersonId == personId).OrderBy(b => b.Title).ToListAsync();
-    FilteredBookmarks = BookmarkList;
-    Tags = await DbContext.Tags.Where(t => t.PersonId == personId).OrderBy(t => t.Name).ToListAsync();                                   
+    await base.OnInitializedAsync();
   }
 
   private void FilterTag(Tag tag)
@@ -105,5 +128,10 @@
   private void ApplyFilter()
   {
     FilterText = "HELLO WORLD!";
+  }
+  
+  public void Dispose()
+  {
+    DbContext?.Dispose();
   }
 }
