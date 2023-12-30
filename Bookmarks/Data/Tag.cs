@@ -9,7 +9,7 @@ public sealed class Tag
     [StringLength(128)]
     public required string Name { get; init; }
 
-    public IEnumerable<Bookmark> Bookmarks { get; } = [];
+    public ICollection<Bookmark> Bookmarks { get; } = [];
     
     [Required]
     [StringLength(50)]

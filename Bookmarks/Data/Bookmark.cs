@@ -15,7 +15,7 @@ public sealed class Bookmark
     [StringLength(1024)]
     public string? Description { get; init; }
 
-    public IEnumerable<Tag> Tags { get; } = [];
+    public ICollection<Tag> Tags { get; } = [];
 
     [Required]
     [StringLength(50)]

@@ -1,11 +1,141 @@
 ﻿@page "/"
+@rendermode InteractiveServer
+
+@using System.Security.Claims
+@using Microsoft.EntityFrameworkCore
+@using System.ComponentModel.DataAnnotations
+@implements IDisposable
+
+@inject IDbContextFactory<ApplicationDbContext> DbFactory
+@inject IHttpContextAccessor HttpContextAccessor
 
 @attribute [Authorize]
 
-<PageTitle>Auth</PageTitle>
+<PageTitle>Bookmarks</PageTitle>
 
-<h1>You are authenticated</h1>
+  <EditForm Model="Filter" method="post" OnValidSubmit="ApplyFilter" FormName="filter" class="row col-12 col-lg-9">
+    <div class="col-12 col-lg-9 mb-2">
+      <div class="d-flex gap-2">
+        <InputText class="form-control" placeholder="Search for bookmarks" @bind-Value="Filter.Text"/>
+        <button type="submit" class="btn btn-primary">Search</button>
+      </div>
+    </div>
+  </EditForm>
 
-<AuthorizeView>
-    Hello @context.User.Identity?.Name!
-</AuthorizeView>
+<div class="row">
+  <div class="col-12 col-lg-9">
+    <h5>Bookmarks</h5>
+    <div class="list-group">
+      @foreach (var bookmark in FilteredBookmarks)
+      {
+        <div class="list-group-item border-0">
+          <a href="@bookmark.Url" class="fs-bold link-underline link-underline-opacity-0 link-underline-opacity-100-hover">@(string.IsNullOrWhiteSpace(bookmark.Title) ? bookmark.Url : bookmark.Title)</a>
+          <div class="bookmark-description d-flex">
+            <span class="text-truncate">@bookmark.Description</span>
+          </div>
+          <div class="font-monospace bookmark-tag">
+            @foreach (var tag in bookmark.Tags)
+            {
+              <span class="me-1 text-info tag" @onclick="()  => FilterTag(tag)">#@tag.Name</span>
+            }
+          </div>
+          <div class="bookmark-description">
+            <a routerLink="/edit/@bookmark.BookmarkId" class="link-success link-underline link-underline-opacity-0 link-underline-opacity-100-hover">Edit</a>
+            <a routerLink="/delete/@bookmark.BookmarkId" class="link-danger link-underline link-underline-opacity-0 link-underline-opacity-100-hover flex-grow-1 float-end">Delete</a>
+          </div>
+        </div>
+      }
+    </div>
+  </div>
+  <div class="col-lg-3 d-none d-lg-block">
+    <h5>Tags</h5>
+    <div class="d-flex flex-wrap gap-1">
+ @foreach (var tag in Tags)
+ {
+   <span class="list-group-item border-0">
+     <span class="text-info tag" @onclick="() => FilterTag(tag)">@tag.Name</span>
+   </span>
+ }
+    </div>
+  </div>
+</div>
+
+@code {
+  private ApplicationDbContext? _dbContext;
+  
+  [SupplyParameterFromForm] private FilterModel Filter { get; set; } = new();
+
+  private IEnumerable<Bookmark> BookmarkList { get; set; } = [];
+  private IEnumerable<Bookmark> FilteredBookmarks { get; set; } = [];
+  private IEnumerable<Tag> Tags { get; set; } = [];
+  
+  private bool _dataIsLoaded;
+
+  protected override async Task OnInitializedAsync()
+  {
+    if (_dataIsLoaded)
+    {
+      return;
+    }
+
+      _dbContext = await DbFactory.CreateDbContextAsync();
+
+      if (_dbContext is not null)
+      {
+        var userId = HttpContextAccessor?.HttpContext?.User.FindFirstValue(ClaimTypes.NameIdentifier);
+        if (userId is null)
+        {
+          return;
+        }
+        
+        BookmarkList = await _dbContext.Bookmarks.Include(b => b.Tags).Where(b => b.UserId == userId).OrderBy(b => b.Title).ToListAsync();
+        FilteredBookmarks = BookmarkList;
+        Tags = await _dbContext.Tags.Where(t => t.UserId == userId).OrderBy(t => t.Name).ToListAsync();           
+      }
+
+    _dataIsLoaded = true;
+    await base.OnInitializedAsync();
+  }
+
+  private void FilterTag(Tag tag)
+  {
+    Filter.Text = $"#{tag.Name}";
+    FilteredBookmarks = BookmarkList.Where(b => b.Tags.Contains(tag)).ToList();
+  }
+  
+  public void Dispose()
+  {
+    _dbContext?.Dispose();
+  }
+  
+  public void ApplyFilter()
+  {
+    if (string.IsNullOrWhiteSpace(Filter.Text))
+    {
+      FilteredBookmarks = BookmarkList;
+    }
+    else if (Filter.Text.StartsWith('#'))
+    {
+      var tagName = Filter.Text.Replace('#', ' ').Trim();
+      var tag = Tags.FirstOrDefault(t => String.Equals(t.Name, tagName, StringComparison.InvariantCultureIgnoreCase));
+      if (tag is not null)
+      {
+        FilterTag(tag);  
+      }
+      else
+      {
+        FilteredBookmarks = [];
+      }
+    }
+    else
+    {
+      FilteredBookmarks = BookmarkList.Where(b => (b.Title is not null && b.Title.Contains(Filter.Text, StringComparison.InvariantCultureIgnoreCase)) || (b.Description is not null && b.Description.Contains(Filter.Text, StringComparison.InvariantCultureIgnoreCase))).ToList();  
+    }
+  }
+
+  private sealed class FilterModel
+  {
+    [Required] 
+    public string Text { get; set; } = "";
+  }  
+}

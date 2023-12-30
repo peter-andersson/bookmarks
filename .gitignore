@@ -9,7 +9,3 @@ appsettings.Development.json
 bin/
 obj/
 Logs/
-
-# Build outputs
-wwwroot/
-dist/
