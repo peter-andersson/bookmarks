@@ -21,14 +21,14 @@
             <div class="mb-3">
                 <label for="title" class="form-label">Title</label>
                 <input type="text" class="form-control" id="title" readonly value="@Bookmark.Title">
-            </div>            
+            </div>
             <div class="mb-3">
                 <label for="url" class="form-label">URL</label>
                 <input type="text" class="form-control" id="url" readonly value="@Bookmark.Url">
             </div>
         </fieldset>
 
-        <button type="button" class="btn btn-danger" @onclick="DeleteBookmark">
+        <button type="button" class="btn btn-danger" @onclick="DeleteBookmark" disabled="@Deleting">
             <span class="spinner-border spinner-border-sm" aria-hidden="true" hidden="@(!Deleting)"></span>
             <span role="status">Delete</span>
         </button>
@@ -37,16 +37,16 @@
 
     @if (!string.IsNullOrWhiteSpace(ErrorMessage))
     {
-        <div class="alert alert-danger mt-5" role="alert">
-            <p>@ErrorMessage</p>
+        <div class="mt-2">
+            <p class="text-danger">@ErrorMessage</p>
             <p>
                 <button class="btn btn-primary" type="button" aria-expanded="false" aria-controls="collapseWidthExample" @onclick="ToggleDetail">
                     Show details
                 </button>
             </p>
-            <div style="min-height: 120px;">
+            <div>
                 <div class="@DetailCssClass collapse-horizontal">
-                    <div class="card card-body">
+                    <div class="alert alert-danger mt-1" role="alert">
                         @ErrorMessageDetail
                     </div>
                 </div>
@@ -72,7 +72,7 @@ else
     private string ErrorMessageDetail { get; set; } = string.Empty;
 
     private bool _showDetail;
-    private string? DetailCssClass => _showDetail ? "collapse" : null;
+    private string? DetailCssClass => _showDetail ? null : "collapse";
 
     private void ToggleDetail()
     {
