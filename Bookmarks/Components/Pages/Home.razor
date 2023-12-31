@@ -1,8 +1,6 @@
 ﻿@page "/"
 @rendermode InteractiveServer
 
-@using System.Security.Claims
-@using Microsoft.EntityFrameworkCore
 @using System.ComponentModel.DataAnnotations
 @implements IDisposable
 
@@ -41,7 +39,7 @@
           </div>
           <div class="bookmark-description">
             <a routerLink="/edit/@bookmark.BookmarkId" class="link-success link-underline link-underline-opacity-0 link-underline-opacity-100-hover">Edit</a>
-            <a routerLink="/delete/@bookmark.BookmarkId" class="link-danger link-underline link-underline-opacity-0 link-underline-opacity-100-hover flex-grow-1 float-end">Delete</a>
+            <a href="/Delete/@bookmark.BookmarkId" class="link-danger link-underline link-underline-opacity-0 link-underline-opacity-100-hover flex-grow-1 float-end">Delete</a>
           </div>
         </div>
       }
