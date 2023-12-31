@@ -1,0 +1,179 @@
+@page "/Add"
+
+@rendermode InteractiveServer
+
+@inject IDbContextFactory<ApplicationDbContext> DbFactory
+@inject IHttpContextAccessor HttpContextAccessor
+@inject NavigationManager NavigationManager
+@implements IDisposable
+
+@attribute [Authorize]
+
+<PageTitle>Add bookmark</PageTitle>
+
+<h1>Add bookmark</h1>
+
+@if (Bookmark is not null)
+{
+    <div>
+        <div *ngIf="bookmark">
+            <div class="mb-3">
+                <label for="url" class="form-label">URL</label>
+                <input type="text" class="form-control" id="url" [(ngModel)]="bookmark.url" (input)="loadInfo()">
+            </div>
+
+            <div class="mb-3">
+                <label for="add-tag">Enter tag name:</label>
+                <input id="add-tag" type="text" class="form-control" [(ngModel)]="newTag" [ngbTypeahead]="search" (keyup)="selectTag($event)"/>
+            </div>
+
+            <div class="mb-3">
+                <label>Selected tags, click to remove.</label>
+                <div>
+                    <span *ngFor="let tag of bookmark.tags" class="me-1">
+                        <span class="link-info link-underline link-underline-opacity-0 link-underline-opacity-100-hover tag" (click)="removeTag(tag)">#{{ tag }}</span>
+                    </span>
+                </div>
+            </div>
+
+            <div class="mb-3">
+                <label for="title" class="form-label">Title</label>
+                <div class="input-group mb-3">
+                    <input type="text" class="form-control" id="title" [(ngModel)]="bookmark.title">
+                    <span class="input-group-text" *ngIf="loadingInfo">
+                        <div class="spinner-border text-secondary" role="status">
+                            <span class="visually-hidden">Loading...</span>
+                        </div>
+                    </span>
+                </div>
+
+                <div class="form-text">Optional</div>
+            </div>
+
+            <div class="mb-3">
+                <label for="description" class="form-label">Description</label>
+                <div class="input-group mb-3">
+                    <input type="text" class="form-control" id="description" [(ngModel)]="bookmark.description">
+                    <span class="input-group-text" *ngIf="loadingInfo">
+                        <div class="spinner-border text-secondary" role="status">
+                            <span class="visually-hidden">Loading...</span>
+                        </div>
+                    </span>
+                </div>
+                <div class="form-text">Optional</div>
+            </div>
+        </div>
+
+        <button type="button" class="btn btn-success" @onclick="Save" disabled="@Saving">
+            <span class="spinner-border spinner-border-sm" aria-hidden="true" hidden="@(!Saving)"></span>
+            <span role="status">Add</span>
+        </button>
+        <button type="button" class="btn btn-secondary ms-2" @onclick="Cancel">Cancel</button>
+    </div>
+
+    @if (!string.IsNullOrWhiteSpace(ErrorMessage))
+    {
+        <div class="mt-2">
+            <p class="text-danger">@ErrorMessage</p>
+            <p>
+                <button class="btn btn-primary" type="button" aria-expanded="false" aria-controls="collapseWidthExample" @onclick="ToggleDetail">
+                    Show details
+                </button>
+            </p>
+            <div>
+                <div class="@DetailCssClass collapse-horizontal">
+                    <div class="alert alert-danger mt-1" role="alert">
+                        @ErrorMessageDetail
+                    </div>
+                </div>
+            </div>
+        </div>
+    }
+}
+
+@code {
+    private ApplicationDbContext? _dbContext;
+
+    private Bookmark? Bookmark { get; set; }
+    private bool Saving { get; set; }
+
+    private bool _dataIsLoaded;
+    private string ErrorMessage { get; set; } = string.Empty;
+    private string ErrorMessageDetail { get; set; } = string.Empty;
+
+    private bool _showDetail;
+    private string? DetailCssClass => _showDetail ? null : "collapse";
+
+    private void ToggleDetail()
+    {
+        _showDetail = !_showDetail;
+    }
+
+    private async Task Save()
+    {
+        if (Bookmark is null)
+        {
+            return;
+        }
+
+        if (_dbContext is null)
+        {
+            return;
+        }
+
+        ErrorMessage = string.Empty;
+        ErrorMessageDetail = string.Empty;
+        Saving = true;
+
+        try
+        {
+            await _dbContext.SaveChangesAsync();
+            NavigationManager.NavigateTo("/");
+        }
+        catch (Exception e)
+        {
+            ErrorMessage = "Failed to update bookmark";
+            ErrorMessageDetail = e.ToString();
+        }
+        finally
+        {
+            Saving = false;
+        }
+    }
+
+    private void Cancel()
+    {
+        NavigationManager.NavigateTo("/");
+    }
+
+    protected override async Task OnInitializedAsync()
+    {
+        if (_dataIsLoaded)
+        {
+            return;
+        }
+
+        _dbContext = await DbFactory.CreateDbContextAsync();
+
+        if (_dbContext is not null)
+        {
+            var userId = HttpContextAccessor?.HttpContext?.User.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (userId is null)
+            {
+                return;
+            }
+
+            // Bookmark = await _dbContext.Bookmarks.Where(b => b.BookmarkId == Id && b.UserId == userId).FirstOrDefaultAsync();
+            // TODO: Load tags
+        }
+
+        _dataIsLoaded = true;
+        await base.OnInitializedAsync();
+    }
+
+    public void Dispose()
+    {
+        _dbContext?.Dispose();
+    }
+
+}

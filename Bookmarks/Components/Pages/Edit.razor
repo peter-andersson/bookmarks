@@ -1,0 +1,137 @@
+@page "/Edit{id:int}"
+@rendermode InteractiveServer
+
+@inject IDbContextFactory<ApplicationDbContext> DbFactory
+@inject IHttpContextAccessor HttpContextAccessor
+@inject NavigationManager NavigationManager
+@implements IDisposable
+
+@attribute [Authorize]
+
+<PageTitle>Edit bookmark</PageTitle>
+
+<h1>Edit bookmark</h1>
+
+@if (Bookmark is not null)
+{
+    <div>
+        // TODO: Add editor...       
+
+        <button type="button" class="btn btn-success" @onclick="Save" disabled="@Saving">
+            <span class="spinner-border spinner-border-sm" aria-hidden="true" hidden="@(!Saving)"></span>
+            <span role="status">Save</span>
+        </button>
+        <button type="button" class="btn btn-secondary ms-2" @onclick="Cancel">Cancel</button>
+    </div>
+
+    @if (!string.IsNullOrWhiteSpace(ErrorMessage))
+    {
+        <div class="mt-2">
+            <p class="text-danger">@ErrorMessage</p>
+            <p>
+                <button class="btn btn-primary" type="button" aria-expanded="false" aria-controls="collapseWidthExample" @onclick="ToggleDetail">
+                    Show details
+                </button>
+            </p>
+            <div>
+                <div class="@DetailCssClass collapse-horizontal">
+                    <div class="alert alert-danger mt-1" role="alert">
+                        @ErrorMessageDetail
+                    </div>
+                </div>
+            </div>
+        </div>
+    }
+}
+else
+{
+    <h2>Bookmark not found</h2>
+}
+
+@code {
+    private ApplicationDbContext? _dbContext;
+
+    [Parameter] public int Id { get; set; }
+
+    private Bookmark? Bookmark { get; set; }
+    private bool Saving { get; set; }
+
+    private bool _dataIsLoaded;
+    private string ErrorMessage { get; set; } = string.Empty;
+    private string ErrorMessageDetail { get; set; } = string.Empty;
+
+    private bool _showDetail;
+    private string? DetailCssClass => _showDetail ? null : "collapse";
+
+    private void ToggleDetail()
+    {
+        _showDetail = !_showDetail;
+    }
+
+    private async Task Save()
+    {
+        if (Bookmark is null)
+        {
+            return;
+        }
+
+        if (_dbContext is null)
+        {
+            return;
+        }
+
+        ErrorMessage = string.Empty;
+        ErrorMessageDetail = string.Empty;
+        Saving = true;
+
+        try
+        {
+            await _dbContext.SaveChangesAsync();
+            NavigationManager.NavigateTo("/");
+        }
+        catch (Exception e)
+        {
+            ErrorMessage = "Failed to update bookmark";
+            ErrorMessageDetail = e.ToString();
+        }
+        finally
+        {
+            Saving = false;
+        }
+    }
+
+    private void Cancel()
+    {
+        NavigationManager.NavigateTo("/");
+    }
+
+    protected override async Task OnInitializedAsync()
+    {
+        if (_dataIsLoaded)
+        {
+            return;
+        }
+
+        _dbContext = await DbFactory.CreateDbContextAsync();
+
+        if (_dbContext is not null)
+        {
+            var userId = HttpContextAccessor?.HttpContext?.User.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (userId is null)
+            {
+                return;
+            }
+
+            Bookmark = await _dbContext.Bookmarks.Where(b => b.BookmarkId == Id && b.UserId == userId).FirstOrDefaultAsync();
+        }
+
+        _dataIsLoaded = true;
+        await base.OnInitializedAsync();
+    }
+
+    public void Dispose()
+    {
+        _dbContext?.Dispose();
+    }
+
+}
