@@ -1,5 +1,4 @@
 ﻿@page "/"
-@rendermode InteractiveServer
 
 @using System.ComponentModel.DataAnnotations
 @implements IDisposable
@@ -20,9 +19,9 @@
     </div>
   </EditForm>
 
-<div class="row">
-  <div class="col-12 col-lg-9">
-    <h5>Bookmarks</h5>
+<RadzenRow>
+  <RadzenColumn Size="12" SizeLG="9">
+    <RadzenText TextStyle="TextStyle.H5">Bookmarks</RadzenText>
     <div class="list-group">
       @foreach (var bookmark in FilteredBookmarks)
       {
@@ -34,7 +33,7 @@
           <div class="font-monospace bookmark-tag">
             @foreach (var tag in bookmark.Tags)
             {
-              <span class="me-1 text-info tag" @onclick="()  => FilterTag(tag)">#@tag.Name</span>
+              <span class="me-1 text-info tag" @onclick="() => FilterTag(tag)">#@tag.Name</span>
             }
           </div>
           <div class="bookmark-description">
@@ -44,19 +43,17 @@
         </div>
       }
     </div>
-  </div>
-  <div class="col-lg-3 d-none d-lg-block">
-    <h5>Tags</h5>
-    <div class="d-flex flex-wrap gap-1">
- @foreach (var tag in Tags)
- {
-   <span class="list-group-item border-0">
-     <span class="text-info tag" @onclick="() => FilterTag(tag)">@tag.Name</span>
-   </span>
- }
-    </div>
-  </div>
-</div>
+  </RadzenColumn>
+  <RadzenColumn Size="12" SizeLG="3">
+    <RadzenText TextStyle="TextStyle.H5">Tags</RadzenText>
+        <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Start" Wrap="FlexWrap.Wrap" Gap="1">
+      @foreach (var tag in Tags)
+      {
+        <RadzenButton Variant="Variant.Text" ButtonStyle="ButtonStyle.Info" Click="@(args => FilterTag(tag))">@tag.Name</RadzenButton>
+      }
+    </RadzenStack>
+  </RadzenColumn>
+</RadzenRow>
 
 @code {
   private ApplicationDbContext? _dbContext;

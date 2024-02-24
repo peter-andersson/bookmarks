@@ -4,6 +4,7 @@ using Microsoft.EntityFrameworkCore;
 using Bookmarks.Components;
 using Bookmarks.Components.Account;
 using Bookmarks.Data;
+using Radzen;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -42,6 +43,8 @@ builder.Services.AddIdentityCore<ApplicationUser>(options =>
     .AddDefaultTokenProviders();
 
 builder.Services.AddSingleton<IEmailSender<ApplicationUser>, IdentityNoOpEmailSender>();
+
+builder.Services.AddRadzenComponents();
 
 var app = builder.Build();
 

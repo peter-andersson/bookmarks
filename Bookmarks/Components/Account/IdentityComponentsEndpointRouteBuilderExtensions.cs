@@ -25,6 +25,15 @@ internal static class IdentityComponentsEndpointRouteBuilderExtensions
             await signInManager.SignOutAsync();
             return TypedResults.LocalRedirect($"~/{returnUrl}");
         });
+        
+        accountGroup.MapGet("/Logout", async (
+            ClaimsPrincipal _,
+            SignInManager<ApplicationUser> signInManager,
+            [FromForm] string returnUrl) =>
+        {
+            await signInManager.SignOutAsync();
+            return TypedResults.LocalRedirect($"~/{returnUrl}");
+        });        
 
         var manageGroup = accountGroup.MapGroup("/Manage").RequireAuthorization();
         

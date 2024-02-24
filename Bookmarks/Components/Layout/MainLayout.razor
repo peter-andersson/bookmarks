@@ -1,15 +1,32 @@
 ﻿@inherits LayoutComponentBase
 
-<NavMenu />
+<RadzenLayout>
+    <RadzenHeader>
+        <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center" Gap="0">
+            <RadzenSidebarToggle Click="@(() => SidebarExpanded = !SidebarExpanded)" />
+            <RadzenLabel Text="Bookmarks"  />
+        </RadzenStack>
+    </RadzenHeader>
+    <RadzenSidebar @bind-Expanded="@SidebarExpanded">
+        <RadzenPanelMenu>
+            <RadzenPanelMenuItem Text="Home" Icon="home" Path="" />
+            <RadzenPanelMenuItem Text="Add bookmark" Icon="add" Path="Add" />
+            <RadzenPanelMenuItem Text="Manage user" Icon="settings" Path="Account/Manage" />
+            <RadzenPanelMenuItem Text="Log out" Icon="logout" Path="Account/Logout" />
+        </RadzenPanelMenu>
+    </RadzenSidebar>
+    <RadzenBody>
+        <div class="rz-p-4">
+            @Body
+        </div>
+    </RadzenBody>
+    <RadzenFooter>
+        <RadzenStack Orientation="Orientation.Horizontal" JustifyContent="JustifyContent.Center">
+            <RadzenLink Path="https://github.com/peter-andersson/bookmarks" Text="View the source" target="_blank" />
+        </RadzenStack>
+    </RadzenFooter>
+</RadzenLayout>
 
-<main>
-    <article class="content px-4">
-        @Body
-    </article>
-</main>
-
-<div id="blazor-error-ui">
-    An unhandled error has occurred.
-    <a href="" class="reload">Reload</a>
-    <a class="dismiss">🗙</a>
-</div>
+@code {
+    private bool SidebarExpanded { get; set; } = true;
+}
