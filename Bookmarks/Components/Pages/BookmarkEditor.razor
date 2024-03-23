@@ -1,4 +1,5 @@
 @page "/Add"
+@page "/Edit{id:int}"
 
 @inject IDbContextFactory<ApplicationDbContext> DbFactory
 @inject IHttpContextAccessor HttpContextAccessor
@@ -7,64 +8,27 @@
 
 @attribute [Authorize]
 
-<PageTitle>Add bookmark</PageTitle>
+@if (Bookmark?.BookmarkId > 0)
+{
+    <PageTitle>Edit bookmark</PageTitle>
 
-<h1>Add bookmark</h1>
+    <h1>Edit bookmark</h1>    
+}
+else
+{
+    <PageTitle>Add bookmark</PageTitle>
+
+    <h1>Add bookmark</h1>
+}
 
 @if (Bookmark is not null)
 {
     <div>
-        <div *ngIf="bookmark">
-            <div class="mb-3">
-                <label for="url" class="form-label">URL</label>
-                <input type="text" class="form-control" id="url" [(ngModel)]="bookmark.url" (input)="loadInfo()">
-            </div>
-
-            <div class="mb-3">
-                <label for="add-tag">Enter tag name:</label>
-                <input id="add-tag" type="text" class="form-control" [(ngModel)]="newTag" [ngbTypeahead]="search" (keyup)="selectTag($event)"/>
-            </div>
-
-            <div class="mb-3">
-                <label>Selected tags, click to remove.</label>
-                <div>
-                    <span *ngFor="let tag of bookmark.tags" class="me-1">
-                        <span class="link-info link-underline link-underline-opacity-0 link-underline-opacity-100-hover tag" (click)="removeTag(tag)">#{{ tag }}</span>
-                    </span>
-                </div>
-            </div>
-
-            <div class="mb-3">
-                <label for="title" class="form-label">Title</label>
-                <div class="input-group mb-3">
-                    <input type="text" class="form-control" id="title" [(ngModel)]="bookmark.title">
-                    <span class="input-group-text" *ngIf="loadingInfo">
-                        <div class="spinner-border text-secondary" role="status">
-                            <span class="visually-hidden">Loading...</span>
-                        </div>
-                    </span>
-                </div>
-
-                <div class="form-text">Optional</div>
-            </div>
-
-            <div class="mb-3">
-                <label for="description" class="form-label">Description</label>
-                <div class="input-group mb-3">
-                    <input type="text" class="form-control" id="description" [(ngModel)]="bookmark.description">
-                    <span class="input-group-text" *ngIf="loadingInfo">
-                        <div class="spinner-border text-secondary" role="status">
-                            <span class="visually-hidden">Loading...</span>
-                        </div>
-                    </span>
-                </div>
-                <div class="form-text">Optional</div>
-            </div>
-        </div>
+        // TODO: Add editor...       
 
         <button type="button" class="btn btn-success" @onclick="Save" disabled="@Saving">
             <span class="spinner-border spinner-border-sm" aria-hidden="true" hidden="@(!Saving)"></span>
-            <span role="status">Add</span>
+            <span role="status">Save</span>
         </button>
         <button type="button" class="btn btn-secondary ms-2" @onclick="Cancel">Cancel</button>
     </div>
@@ -88,9 +52,15 @@
         </div>
     }
 }
+else
+{
+    <h2>Bookmark not found</h2>
+}
 
 @code {
     private ApplicationDbContext? _dbContext;
+
+    [Parameter] public int? Id { get; set; }
 
     private Bookmark? Bookmark { get; set; }
     private bool Saving { get; set; }
@@ -161,8 +131,7 @@
                 return;
             }
 
-            // Bookmark = await _dbContext.Bookmarks.Where(b => b.BookmarkId == Id && b.UserId == userId).FirstOrDefaultAsync();
-            // TODO: Load tags
+            Bookmark = await _dbContext.Bookmarks.Where(b => b.BookmarkId == Id && b.UserId == userId).FirstOrDefaultAsync() ?? new Bookmark();
         }
 
         _dataIsLoaded = true;

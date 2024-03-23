@@ -6,8 +6,8 @@ public sealed class Bookmark
 {
     public int BookmarkId { get; init; }
 
-    [StringLength(4096)]
-    public required string Url { get; init; }
+    [StringLength(4096)] 
+    public string Url { get; init; } = string.Empty;
 
     [StringLength(256)]
     public string? Title { get; init; }

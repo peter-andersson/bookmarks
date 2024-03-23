@@ -60,8 +60,8 @@
   
   [SupplyParameterFromForm] private FilterModel Filter { get; set; } = new();
 
-  private IEnumerable<Bookmark> BookmarkList { get; set; } = [];
-  private IEnumerable<Bookmark> FilteredBookmarks { get; set; } = [];
+  private IEnumerable<Data.Bookmark> BookmarkList { get; set; } = [];
+  private IEnumerable<Data.Bookmark> FilteredBookmarks { get; set; } = [];
   private IEnumerable<Tag> Tags { get; set; } = [];
   
   private bool _dataIsLoaded;
